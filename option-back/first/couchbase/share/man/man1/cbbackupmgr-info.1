@@ -1,0 +1,252 @@
+'\" t
+.\"     Title: cbbackupmgr-info
+.\"    Author: Couchbase
+.\" Generator: Asciidoctor 2.0.10
+.\"      Date: 2019-08-21
+.\"    Manual: Backup Manual
+.\"    Source: Backup 1.0.0
+.\"  Language: English
+.\"
+.TH "CBBACKUPMGR\-INFO" "1" "2019-08-21" "Backup 1.0.0" "Backup Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cbbackupmgr\-info \- Return information about the backup archive
+.SH "SYNOPSIS"
+.sp
+.sp
+.nf
+cbbackupmgr info [\-\-archive <archive_dir>] [\-\-repo <repo_name>]
+                 [\-\-backup <bucket_list>] [\-\-bucket <bucket>]
+                 [\-\-json] [\-\-all]
+.fi
+.br
+.SH "DESCRIPTION"
+.sp
+(NOTE): This command is in developer preview.
+.sp
+This command provides information about the given path, be it the whole
+archive, repository, backup or bucket. The information can be displayed in a
+tabular format or JSON. By default only two levels of the data hierarchy will
+be displayed in tabular format, to see it all use the \f(CR\-\-all\fP flag. For the
+exact format of the output please see the examples below. Unlike the list
+command this command will not list individual files.
+.SH "OPTIONS"
+.sp
+Below are the required and optional parameters for the info command.
+.SS "Required"
+.sp
+\-a,\-\-archive <archive_dir>
+.RS 4
+The location of the backup archive to display information about.
+.RE
+.SS "Optional"
+.sp
+\-r,\-\-repo <repo_name>
+.RS 4
+If specified, the info command will only display information for this backup
+repository.
+.RE
+.sp
+\-\-backup <backup>
+.RS 4
+If specified, the info command will only display information for this backup.
+The \-\-repo flag must also be specified if this flag is used.
+.RE
+.sp
+\-\-bucket <bucket>
+.RS 4
+If specified, the info command will only display information for this bucket.
+The \-\-repo and \-\-backup flags must also be specified if this flag is used.
+.RE
+.sp
+\-\-json
+.RS 4
+If specified the output will be a json object.
+.RE
+.sp
+\-\-all
+.RS 4
+Show all levels of the data hierarchy. Note that for json output all levels
+are always returned.
+.RE
+.SH "EXAMPLES"
+.sp
+The info command will display information of the backup archive in a user
+friendly manner. Let\(cqs imagine we have a backup archive \f(CR/backup_archive\fP and we want
+to see information about it we would run the command:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr info \-a /backup_archive
+
+Name             | Size      | # Repos  |
+backup_archive   | 111.00MB  | 2        |
+
+*    Name        | Size     | # Backups  |
+*    Manchester  | 55.56MB  | 1          |
+*    London      | 55.44MB  | 2          |
+.fi
+.if n .RE
+.sp
+This shows us that the archive \f(CRbackup_archive\fP has two repositories and has a
+total size of 110MB. It will also provide one level more into the hierarchy and
+show information of the two repositories \f(CRManchester\fP and \f(CRLondon\fP and we can
+see their respective sizes as well as the number of backups each contains.
+.sp
+If we wanted to get more in depth information of the repository we would
+provide the repository name as follows:
+.sp
+.if n .RS 4
+.nf
+$cbbackupmgr info \-a ~/backup_archive \-r London
+
+Name    | Size     | # Backups  |
+London  | 55.44MB  | 2          |
+
++  Backup                       | Size     | Type  | Source                 | Range  | Events  | Aliases  | Complete  |
++  2019\-03\-15T13_19_54.826458Z  | 3.02MB   | INCR  | http://localhost:8091  | N/A    | 0       | 1        | true      |
++  2019\-03\-15T12_18_00.514284Z  | 52.42MB  | FULL  | http://localhost:8091  | N/A    | 0       | 1        | true      |
+.fi
+.if n .RE
+.sp
+This gives more in depth information about each backup such as the timestamp
+from when it was made, the size, the type which can be either a full backup
+(FULL), and incremental backup (INCR) or a merge (MERGE). We can also see
+the address of the cluster we backed up the data from. The range column is
+used by merges. If the backup is a merge the range has the start timestamp
+the end timestamp and the number of backups that where merge in the format
+\f(CRstart \- end : count\fP. Event and aliases are the number of events and full
+text search indexes aliases that where restored. Finally the complete field
+indicates if the backup finished successfully or not.
+.sp
+It is possible to get information for an individual backup as well by using
+the following command:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr info \-a ~/backup_archive \-r London \-\-backup 2019\-03\-15T12_18_00.514284Z
+
+Backup                       | Size     | Type  | Source                 | Range  | Events  | Aliases  | Complete  |
+2019\-03\-15T12_18_00.514284Z  | 52.42MB  | FULL  | http://localhost:8091  | N/A    | 0       | 1        | true      |
+
+ \-   Bucket          | Size     | Items  | Mutations | Tombstones | Views  | FTS  | Indexes  | CBAS  |
+ \-   beer\-sample     | 6.85MB   | 7303   | 7303      | 0          | 1      | 0    | 1        | 0     |
+ \-   gamesim\-sample  | 2.86MB   | 586    | 586       | 0          | 1      | 0    | 1        | 0     |
+ \-   travel\-sample   | 42.72MB  | 31591  | 31591     | 0          | 0      | 0    | 10       | 0     |
+.fi
+.if n .RE
+.sp
+The command above provides information about all buckets in the specific
+backup. This includes the size of the data in each bucket, the number of
+items which includes mutations and tombstones, the number of mutations
+and the number of deletions. For backups made with \f(CRcbbackupmgr\fP older
+than 6.5 mutations and deletions will always be 0 as this is only
+supported by archives made with \f(CRcbbcakupmgr 6.5+\fP. For the buckets it will
+also shows the number of view, full text  indexes, the number of GSIs and the
+number of analytics metadata records.
+.sp
+To see information for one bucket only we would use the \f(CR\-\-bucket\fP
+flag and give it the name of the bucket and this would return just the
+information for that bucket.
+.sp
+To see from one level to the last the \f(CR\-\-all\fP flag must be provided this will
+show the information from the provided level to the bucket level. An example
+can be seen below:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr info \-a ~/backup_archive \-\-all
+
+Name         | Size     | # Repos  |
+backup_repo  | 55.56MB  | 1        |
+
+*  Name        | Size     | # Backups  |
+*  Manchester  | 55.56MB  | 1          |
+
++    Backup                      | Size     | Type   | Source  | Range                                      | Events  | Aliases  | Complete  |
++    2019\-03\-15T13_52_27.18301Z  | 55.56MB  | MERGE  | MERGE   | 2019\-03\-15T13_51_44\-2019\-03\-15T13_51_58:3  | 0       | 1        | true      |
+
+\-      Bucket          | Size     | Items  | Mutations | Tombstones | Views  | FTS  | Indexes  | CBAS  |
+\-      beer\-sample     | 6.85MB   | 7303   | 7303      | 0          | 1      | 0    | 1        | 0     |
+\-      gamesim\-sample  | 2.86MB   | 586    | 586       | 0          | 1      | 0    | 1        | 0     |
+\-      travel\-sample   | 42.72MB  | 31591  | 31591     | 0          | 0      | 0    | 10       | 0     |
+.fi
+.if n .RE
+.sp
+The info command also allows for JSON output which can be useful for
+automation or users that would rather get the information in json format.
+The output json will have the format seen below. Note that all sizes will be
+in bytes and that for non\-merge backups the range field will be empty.
+.sp
+.if n .RS 4
+.nf
+{
+  “name”: NAME,
+  “size”: SIZE,
+  “repos”: [
+    {
+      “name”: NAME,
+      “size”: SIZE,
+      “count”: BACKUP_COUNT,
+      “backups”: [
+        {
+          “date”: DATE,
+          “complete: BOOL
+          “size”: SIZE,
+          “type”: [“incr”| “full” | “merge”],
+          “source”: SOURCE,
+          “range”:[all backups date involved in the merge],
+          “event”: COUNT,
+          “fts_alias”: COUNT,
+          “buckets”: [
+            {
+              “name”: BUCKET_NAME,
+              “size”: SIZE,
+              “items”: COUNT,
+              "mutations": COUNT,
+              "tombstones": COUNT,
+              “views_count”: COUNT,
+              “fts_count”: COUNT,
+              “analytics”: COUNT
+            }
+          ]
+        }
+      ]
+    }
+  ]
+.fi
+.if n .RE
+.SH "ENVIRONMENT AND CONFIGURATION VARIABLES"
+.sp
+CB_ARCHIVE_PATH
+.RS 4
+Specifies the path to the backup archive. If the archive path is supplied as
+a command line argument then this value is overridden.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBcbbackupmgr\-archivelayout\fP(1)
+.SH "CBBACKUPMGR"
+.sp
+Part of the \fBcbbackupmgr\fP(1) suite
+.SH "AUTHOR"
+.sp
+Couchbase

@@ -1,0 +1,10 @@
+[{server,[{fail_if_no_peer_cert,true},
+          {certfile, "/opt/couchbase/var/lib/couchbase/config/ssl-cert-key.pem"},
+          {keyfile, "/opt/couchbase/var/lib/couchbase/config/ssl-cert-key.pem"},
+          {cacertfile, "/opt/couchbase/var/lib/couchbase/config/ssl-cert-key.pem-ca"},
+          {reuse_sessions,false}]},
+ {client,[{certfile, "/opt/couchbase/var/lib/couchbase/config/ssl-cert-key.pem"},
+          {keyfile, "/opt/couchbase/var/lib/couchbase/config/ssl-cert-key.pem"},
+          {cacertfile, "/opt/couchbase/var/lib/couchbase/config/ssl-cert-key.pem-ca"},
+          {verify, verify_peer},
+          {reuse_sessions,false}]}].

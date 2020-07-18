@@ -1,0 +1,40 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>token filter</th>
+      <th>type</th>
+      <th class="text-right">
+        <button
+           ng-if="!viewOnlyModal"
+           ng-click="newTokenFilter()" type="button"
+           class="outline"
+           style="width:200px;">
+          + Add Token Filter
+        </button>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="(tfname,tfval) in indexMapping.analysis.token_filters">
+      <td><a ng-click="editTokenFilter(tfname, tfval, true)">{{tfname}}</a></td>
+      <td>{{tfval.type}}</td>
+      <td class="controls">
+        <a
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="editTokenFilter(tfname, tfval)">
+          Edit
+        </a>
+        <a
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="deleteTokenFilter(tfname)">
+          Delete
+        </a>
+      </td>
+    </tr>
+    <tr ng-show="Utils.keys(indexMapping.analysis.token_filters).length < 1">
+      <td colspan="3">None</td>
+    </tr>
+  </tbody>
+</table>

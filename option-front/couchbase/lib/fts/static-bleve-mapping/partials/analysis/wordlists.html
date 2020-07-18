@@ -1,0 +1,42 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>wordlist</th>
+      <th></th>
+      <th class="text-right">
+        <button
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="newWordList()" type="button"
+           class="outline"
+           style="width:200px;">
+          + Add Word List
+        </button>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="(tmname,tmval) in indexMapping.analysis.token_maps">
+      <td><a ng-click="editWordList(tmname, tmval, true)">{{tmname}}</a></td>
+
+      <td></td>
+      <td class="controls">
+        <a
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="editWordList(tmname, tmval)">
+          Edit
+        </a>
+        <a
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="deleteWordList(tmname)">
+          Delete
+        </a>
+      </td>
+    </tr>
+    <tr ng-show="Utils.keys(indexMapping.analysis.token_maps).length < 1">
+      <td colspan="3">None</td>
+    </tr>
+  </tbody>
+</table>

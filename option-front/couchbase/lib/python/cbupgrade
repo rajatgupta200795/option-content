@@ -1,0 +1,546 @@
+#!/usr/bin/env python
+# -*-python-*-
+
+import getopt
+import glob
+import os
+import platform
+import re
+import shutil
+import subprocess
+import sys
+
+def usage(err=0):
+    print("""
+Usage: %s [-c path/to/previous/config/dir] [-a AUTO] [-d FILENAME] [-n] [-s FACTOR]
+
+  -c <path/to/previous/config/dir>
+       -- example: -c /opt/couchbase/var/lib/couchbase/config
+
+  -a <yes|no>
+       -- automatic or non-interactive mode; default is 'no';
+          'yes' to force automatic 'yes' answers to all questions
+
+  -d <dbdir_output_file>
+       -- retrieve db directory from config file and exit
+
+  -n   -- dry-run; don't actually change anything
+
+  -s <free_disk_space_needed_factor>
+       -- free disk space needed, as a factor of current bucket usage
+       -- default value is 2.0
+       -- example: -s 1.0
+
+  --namespace_upgrade_only Only attempt to upgrade database files in preparation to support "namespaces"
+""" % (os.path.basename(sys.argv[0]),), file=sys.stderr)
+    sys.exit(err)
+
+def parse_args(args):
+    prev_cfg_dir = None
+    interactive  = True
+    dry_run      = False
+    space_needed_factor = 2.0
+    dbdir_file   = None
+    namespace_upgrade_only = False
+
+    try:
+        opts, args = getopt.getopt(args, 'hc:a:nsd:', ['help', 'namespace_upgrade_only'])
+    except getopt.GetoptError as e:
+        usage(e.msg)
+
+    for (o, a) in opts:
+        if o == '--help' or o == '-h':
+            usage()
+        elif o == '-c':
+            prev_cfg_dir = a
+        elif o == '-a':
+            interactive = re.match("y", a) == None
+        elif o == '-n':
+            dry_run = True
+        elif o == '-s':
+            space_needed_factor = float(a)
+        elif o == '-d':
+            dbdir_file = a
+        elif o == '--namespace_upgrade_only':
+            namespace_upgrade_only = True
+        else:
+            usage("unknown option - " + o)
+
+    return prev_cfg_dir, interactive, dry_run, space_needed_factor, dbdir_file, namespace_upgrade_only
+
+def find_cfg(src_dir, root, patterns):
+    for pattern in patterns:
+        cfgs = list(set(glob.glob(os.path.join(src_dir, pattern)) + glob.glob(pattern)))
+        if len(cfgs) > 1:
+            sys.exit("Error: found multiple " + root + " candidates: " + str(cfgs))
+        if len(cfgs) == 1 and os.path.getsize(cfgs[0]) > 0:
+            return cfgs[0]
+
+    return None
+
+def copy_cfg(cfg, dst, dry_run=False, force=False):
+    normalize_cfg = os.path.normpath(cfg)
+    normalize_dst = os.path.normpath(dst)
+    if not force and os.path.exists(dst) and os.path.getsize(dst) > 0 and \
+            normalize_cfg != normalize_dst:
+        sys.exit("Error: " + dst + " already exists while copying " + cfg)
+
+    print(dry_run_prefix(dry_run) + "Copying " + cfg)
+    print(dry_run_prefix(dry_run) + "    cp " + cfg + " " + dst)
+    if not dry_run:
+        if normalize_cfg != normalize_dst:
+            shutil.copyfile(cfg, dst)
+
+    return True
+
+def dry_run_prefix(dry_run):
+    if dry_run:
+        return "SKIPPED (dry-run): "
+    return ""
+
+def prompt(msg, expect='yes'):
+    global interactive
+
+    if interactive:
+        print(msg)
+        if not re.match(expect, sys.stdin.readline()):
+            sys.exit("Did not receive a '" + expect + "', leaving.")
+
+def confirm(prefix_dir, prev_cfg_dir, prev_cfg, prev_ip,
+            dbdir, buckets):
+    global interactive
+    if interactive:
+        print("\nPlease ensure Couchbase Server is not running.")
+        if platform.system() == 'Windows':
+          print("  Use the Control Panel to stop the Couchbase service.")
+        elif platform.system() == 'Darwin':
+          print("  Use the Couchbase icon from the menu bar to stop the Couchbase service.")
+        else:
+          print(f"  Use '{prefix_dir}/bin/install/systemd-ctl stop' to stop the Couchbase service.")
+        prompt("Is Couchbase Server already stopped? [yes|no]")
+
+    print("\nDatabase dir: " + dbdir)
+    prompt("Is that the expected database directory to upgrade? [yes|no]")
+
+    print("\nBuckets to upgrade: " + ",".join(buckets or ["[no buckets found]"]))
+    prompt("Are those the expected buckets to upgrade? [yes|no]")
+
+def upgrade(bin_dir, prefix_dir, indexdir, prev_cfg_dir, prev_cfg, prev_ip,
+            prev_ini, prev_dist_cfg, dbdir, buckets, dry_run=False):
+    """File modification steps are grouped into this upgrade() function.
+    """
+
+    if prev_cfg:
+        copy_cfg(prev_cfg,
+                 os.path.join(prefix_dir,
+                              "var", "lib", "couchbase", "config", "config.dat"),
+                 dry_run=dry_run, force=True)
+    if prev_ip:
+        copy_cfg(prev_ip,
+                 os.path.join(prefix_dir,
+                              "var", "lib", "couchbase", "ip"),
+                 dry_run=dry_run, force=True)
+    if prev_ini:
+        if prev_ini.find("local.ini"):
+            copy_cfg(prev_ini,
+                     os.path.join(prefix_dir,
+                                  "etc", "couchdb", "local.ini"),
+                     dry_run=dry_run, force=True)
+        elif prev_ini.find("runtime.ini"):
+            copy_cfg(prev_ini,
+                     os.path.join(prefix_dir,
+                                  "etc", "runtime.ini"),
+                     dry_run=dry_run, force=True)
+    if prev_dist_cfg:
+        copy_cfg(prev_dist_cfg,
+                 os.path.join(prefix_dir,
+                              "var", "lib", "couchbase", "config", "dist_cfg"),
+                 dry_run=dry_run, force=True)
+
+    print("Ensuring bucket data directories.")
+    for bucket in buckets:
+        bucket_dir = dbdir + "/" + bucket
+
+        print(dry_run_prefix(dry_run) \
+              + "Ensuring bucket data directory: " + bucket_dir)
+        print(dry_run_prefix(dry_run) \
+              + "    mkdir -p " + bucket_dir)
+        if (not dry_run) and (not os.path.isdir(bucket_dir)):
+            os.makedirs(bucket_dir)
+
+    if platform.system() != 'Windows' or platform.system() != 'Darwin':
+        for x in [dbdir, indexdir,
+                  "/opt/couchbase/var/lib/couchbase/data",
+                  "/opt/membase/var/lib/membase/data"]:
+            if os.path.exists(x):
+                cmd = ['chown', '-R', 'couchbase:couchbase', x]
+                print(dry_run_prefix(dry_run) + "Ensuring dbdir and indexdir owner/group: " + x)
+                print(dry_run_prefix(dry_run) + "    " + " ".join(cmd))
+                if not dry_run:
+                    p = subprocess.Popen(cmd)
+                    err = os.waitpid(p.pid, 0)[1]
+                    if err != 0:
+                        sys.exit("ERROR: chown dbdir failed: " + x + " err: " + str(err))
+
+def upgradeForKVNamespace(bin_dir, dbdir, buckets, dry_run):
+    # Check for data directories and only proceed if 1 or more exist
+    bucketsToUpgrade = []
+    for bucket in buckets:
+        bucketDir = os.path.join(dbdir, bucket)
+        if os.path.isdir(bucketDir):
+            bucketsToUpgrade.append(bucket)
+
+    # No buckets, no upgrade
+    if not bucketsToUpgrade:
+        print("No data directories found for namespace upgrade")
+        return
+
+    msg = "bucket" if len(bucketsToUpgrade) == 1 else "buckets"
+    print("Upgrading existing datafiles to be namespace compatible for {0} {1}"
+        .format(len(bucketsToUpgrade), msg))
+    print("warning this may take time if not already done")
+    # Run couchfile_upgrade against *all* datafiles so that document metadata
+    # is collection ready. This will read x.couch.1 and write x.couch.2 for
+    # every couchfile.
+    upgradeTool = "couchfile_upgrade"
+    if platform.system() == 'Windows':
+        upgradeTool += ".exe"
+
+    for bucket in bucketsToUpgrade:
+        bucketDir = os.path.join(dbdir, bucket)
+
+        print("Namespace upgrade: bucket {0} {1}".format(bucket, bucketDir))
+        # First step is to list the files, we may have 0.couch.1 and 0.couch.2
+        # The upgrade should only apply to 0.couch.2 (as that's what KV will
+        # warmup from)/
+        fileMap = {}
+        for filename in os.listdir(bucketDir):
+            match = re.search("^(\d*?)\.couch\.(\d*?)$", filename)
+
+            if match:
+                insert = True
+                vb = match.group(1)
+                if  vb in fileMap:
+                    # Only insert this rev if it is higher
+                    insert = fileMap[vb] < int(match.group(2))
+                if insert:
+                    fileMap[vb] = int(match.group(2))
+        print("Namespace upgrade: bucket {0} files to process {1}".format(bucket, len(fileMap)))
+        # fileMap maps from vbid to the couch revision we will upgrade
+        for vb in fileMap:
+            oldFilename = os.path.join(bucketDir, vb + ".couch." + str(fileMap[vb]))
+            newFilename = os.path.join(bucketDir, vb + ".couch." + str(fileMap[vb] + 1))
+
+            cmd = [os.path.join(bin_dir, upgradeTool),
+                   "--input", oldFilename,
+                   "--output", newFilename,
+                   "--tolerate"] # will exit 0 if files already upgraded
+            print(dry_run_prefix(dry_run) + "Namespace upgrade of file: " + oldFilename)
+            print(dry_run_prefix(dry_run) + "    " + " ".join(cmd))
+            if not dry_run:
+                # Handle the case where couchstore has already been upgraded.
+                stdout, stderr, status = get_subprocess_output_and_status(cmd)
+
+                if status != 0:
+
+                    if os.path.exists(newFilename):
+                        print("Namespace upgrade: removing file:{0}"
+                              .format(newFilename))
+                        os.remove(newFilename)
+                    sys.exit("Namespace upgrade: Failed for {0}. STDOUT {1}, "
+                             "STDERR {2}, status {3}"
+                             .format(oldFilename, stdout, stderr, status))
+                else:
+                    # Was successful, if a new file exists we must ensure the
+                    # perms match the old and remove the old file (for unix)
+                    # else: Windows new file inherits directory owner
+                    if os.path.exists(newFilename):
+                        if platform.system() != 'Windows':
+                            # New file must match old files owner and perms.
+                            try:
+                                shutil.copymode(oldFilename, newFilename)
+                                stat = os.stat(oldFilename)
+                                os.chown(newFilename, stat.st_uid, stat.st_gid)
+                            except Exception as e:
+                                sys.exit("Namespace upgrade: Failed to set "
+                                         "permissions/owner:{0}, e:{1}"
+                                        .format(oldFilename, e))
+                        print("Namespace upgrade: Completed upgrade of {0} and "
+                              "created {1}".format(oldFilename, newFilename))
+                        try:
+                            os.remove(oldFilename)
+                        except OSError as e:
+                            # KV will attempt to remove old files on warmup, so just log
+                            print("Namespace upgrade: Failed to remove:{0}, errno:\"{1}\""
+                                .format(oldFilename, e.strerror))
+
+def get_free_space(path):
+    fs_stat = None
+    try:
+        fs_stat = os.statvfs(path)
+        return fs_stat.f_bsize * fs_stat.f_bavail
+    except:
+        pass
+
+    # http://stackoverflow.com/questions/51658/cross-platform-space-remaining-on-volume-using-python
+    #
+    if platform.system() == 'Windows':
+        import ctypes
+
+        free_bytes = ctypes.c_ulonglong(0)
+        ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(path),
+                                                   None, None,
+                                                   ctypes.pointer(free_bytes))
+        return free_bytes.value
+
+    return -1 # Don't know.
+
+def get_dbdir(parentdir="."):
+    return get_from_couch_config(parentdir, "database_dir")
+
+def get_indexdir(parentdir="."):
+    return get_from_couch_config(parentdir, "view_index_dir")
+
+def get_from_couch_config(parentdir, key):
+    key = key + " = "
+    for f in ["etc/runtime.ini",
+              "etc/couchdb/local.ini.debsave",
+              "etc/couchdb/local.ini.rpmsave",
+              "etc/couchdb/local.ini"]:
+        try:
+            path = os.path.join(parentdir, f)
+            for line in open(path):
+                if key in line:
+                    return line.split(" = ")[-1].strip(), path
+        except:
+            pass
+
+    if platform.system() == 'Windows':
+        return "c:/Program Files/Couchbase/Server/var/lib/couchbase/data", None
+    elif platform.system() == 'Darwin':
+        return os.path.expanduser("~") + "/Library/Application Support/Couchbase/var/lib/couchbase/data", None
+    else:
+        return "/opt/couchbase/var/lib/couchbase/data", None
+
+def get_subprocess_output_and_status(command):
+    try:
+        p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+    except OSError as e:
+        sys.exit('ERROR: problem executing `{0}` Exception: '
+                 '{1}'.format(command, e))
+
+    return out.decode(), err.decode(), p.returncode
+
+def get_subprocess_output(command):
+    stdout, stderr, status = get_subprocess_output_and_status(command)
+
+    if status != 0:
+        if type(command) is list:
+            command = ' '.join(command)
+        sys.exit('ERROR: problem executing `{0}` RC: {1}, STDOUT: {2}, STDERR: '
+                 '{3}'.format(command, status, stdout, stderr))
+
+    # communicate() returns bytes, convert to string before returning
+    # to avoid multiple code changes (for now)
+    return stdout
+
+
+
+def main():
+    # We are installed in $INSTALL_DIR/lib/python, so need to go up three levels
+    prefix_dir = os.path.normpath(
+        os.path.join(
+            os.path.abspath(__file__),
+            '..', '..', '..'
+        )
+    )
+    bin_dir = os.path.join(prefix_dir, 'bin')
+
+    path = [bin_dir, os.environ['PATH']]
+
+    if os.name == 'posix':
+        os.environ['PATH'] = ':'.join(path)
+    elif os.name == 'nt':
+        os.environ['PATH'] = ';'.join(path)
+
+    global prev_cfg_dir, interactive, dry_run, space_needed_factor, dbdir_file
+
+    prev_cfg_dir, interactive, dry_run, space_needed_factor, dbdir_file, namespace_upgrade_only = \
+       parse_args(sys.argv[1:])
+
+    if dry_run:
+        print("Dry-run mode: no actual upgrade changes will be made.")
+
+    if not interactive:
+        print("Automatic mode: running without interactive questions or confirmations.")
+
+    if not prev_cfg_dir:
+        sys.exit("Error: please provide a previous config directory path (-c path)")
+    if not os.path.isdir(prev_cfg_dir):
+        sys.exit("Error: previous config directory (-c path) is not a directory: " + prev_cfg_dir)
+
+    # ----------------------------------------------------
+
+    ver = None
+    ver_path = os.path.join(prefix_dir, "VERSION.txt")
+    try:
+        f = open(ver_path, 'r')
+        ver = f.read()
+        f.close()
+    except:
+        sys.exit("Unexpected: missing " + ver_path + " file")
+    if not ver:
+        sys.exit("Unexpected: empty " + ver_path)
+
+    print("Analysing...")
+
+    # ----------------------------------------------------
+
+    prev_cfg = find_cfg(prev_cfg_dir, "config.dat",
+                        # Look for something like /etc/opt/membase/ns_1/config.dat
+                        # Possibly config.dat.rpmsave or config.dat.debsave
+                        ['config.dat',
+                         'config.dat.*save',
+                         '/opt/couchbase/var/lib/couchbase/config/config.dat',
+                         '/opt/couchbase/var/lib/couchbase/config/config.dat.*save'])
+    if not prev_cfg:
+        print("Done: no previous config.dat found; nothing to upgrade.")
+        sys.exit(0)
+
+    print("Previous config.dat file is " + prev_cfg)
+
+    # ----------------------------------------------------
+
+    prev_ip = find_cfg(prev_cfg_dir, "ip", ['/opt/couchbase/var/lib/couchbase/ip_start.*save',
+                                            'var/lib/couchbase/ip_start.*save',
+                                            'ip_start.*save',
+                                            '/opt/couchbase/var/lib/couchbase/ip_start',
+                                            'var/lib/couchbase/ip_start',
+                                            'ip_start',
+                                            '/opt/couchbase/var/lib/couchbase/ip.*save',
+                                            'var/lib/couchbase/ip.*save',
+                                            'ip.*save',
+                                            '/opt/couchbase/var/lib/couchbase/ip',
+                                            'var/lib/couchbase/ip',
+                                            'ip'])
+    # ----------------------------------------------------
+    prev_ini = find_cfg(prev_cfg_dir, "local.ini",
+                        ['/opt/couchbase/etc/couchdb/local.ini.*save',
+                         'etc/couchdb/local.ini.*save',
+                         'local.ini.*save',
+                         '/opt/couchbase/etc/couchdb/local.ini',
+                         'etc/couchdb/local.ini',
+                         'local.ini'])
+
+    # ----------------------------------------------------
+    prev_dist_cfg = find_cfg(prev_cfg_dir, "dist_cfg",
+                             ['dist_cfg',
+                              'dist_cfg.*save',
+                              '/opt/couchbase/var/lib/couchbase/config/dist_cfg',
+                              '/opt/couchbase/var/lib/couchbase/config/dist_cfg.*save'])
+
+    # Since 2.0, dbdir is moved to ini file
+    dbdir, prev_ini = get_dbdir(prefix_dir)
+    indexdir, _ = get_indexdir(prefix_dir)
+
+    if not dbdir:
+        sys.exit("ERROR: no previously configured dbdir")
+    if not os.path.isdir(dbdir):
+        sys.exit("ERROR: dbdir is not a directory: " + dbdir)
+    if not indexdir:
+        sys.exit("ERROR: no previously configured indexdir")
+    if not os.path.isdir(indexdir):
+        sys.exit("ERROR: indexdir is not a directory: " + indexdir)
+
+    if dbdir_file:
+       dbdir_fp = open(dbdir_file, 'w')
+       print(dbdir, file=dbdir_fp)
+       dbdir_fp.close()
+       print("Db directory: " + dbdir)
+       sys.exit(0)
+
+    # ----------------------------------------------------
+    escript_cmd = "escript"
+    if platform.system() == 'Windows':
+        escript_cmd = "escript.exe"
+    buckets = get_subprocess_output([escript_cmd,
+                                     os.path.join(bin_dir, "cbdump-config"),
+                                     prev_cfg, "buckets", "membase"])
+    buckets = buckets.strip()
+    if len(buckets) <= 0:
+        buckets = []
+    else:
+        buckets = buckets.split("\n")
+
+    buckets_lcase = {}
+    buckets_total = 0
+    for bucket in buckets:
+        bucket_path = os.path.join(dbdir, bucket)
+
+
+        if bucket.lower() in buckets_lcase:
+            sys.exit("ERROR: bucket " + bucket \
+                     + " has a case-insensitive match with another bucket name." \
+                     + " Please first rename the bucket before upgrading.")
+        buckets_lcase[bucket.lower()] = True
+        if os.path.isdir(bucket_path):
+            buckets_total += os.path.getsize(bucket_path)
+
+    # ----------------------------------------------------
+
+    # TODO: Ensure Couchbase isn't running.
+    # TODO: Can I write to the right directories?
+    # TODO: linux: Am I running as the right user?
+    # TODO: linux: Can I sudo to the right user?
+    # TODO: linux: chmod of created files and directories.
+    # TODO: Rollback files if there was an error.
+
+    # ----------------------------------------------------
+
+    confirm(prefix_dir, prev_cfg_dir, prev_cfg, prev_ip,
+            dbdir, buckets)
+
+    # ----------------------------------------------------
+
+    print("\nChecking disk space available for buckets in directory:\n  " + dbdir)
+
+    want = buckets_total * space_needed_factor
+    avail = get_free_space(dbdir)
+    if avail < 0:
+        sys.exit("ERROR: unable to retrieve amount of free disk space")
+
+    print("  Free disk bucket space wanted: " + str(want))
+    print("  Free disk bucket space available: " + str(avail))
+    print("  Free disk space factor: " + str(space_needed_factor))
+
+    if avail < want:
+        sys.exit("ERROR: not enough free disk space" \
+                 + " in " + dbdir + " directory." \
+                 + " Consider using the -s flag to supply" \
+                 + " a different free disk space needed factor.")
+
+    print("  Ok.")
+
+    # ----------------------------------------------------
+
+    print("\nAnalysis complete.")
+
+    if dry_run:
+        prompt("Proceed with config & data upgrade steps? [yes|no]")
+    else:
+        prompt("Proceed with config & data upgrade steps (writing new files)? [yes|no]")
+
+    print("")
+
+    if namespace_upgrade_only:
+        upgradeForKVNamespace(bin_dir, dbdir, buckets, dry_run=dry_run)
+    else:
+        upgradeForKVNamespace(bin_dir, dbdir, buckets, dry_run=dry_run)
+        upgrade(bin_dir, prefix_dir, indexdir, prev_cfg_dir, prev_cfg, prev_ip,
+                prev_ini, prev_dist_cfg, dbdir, buckets, dry_run=dry_run)
+
+    print("\nDone.")
+
+if __name__ == '__main__':
+    main()

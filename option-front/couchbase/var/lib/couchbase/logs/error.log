@@ -1,0 +1,16 @@
+[ns_server:error,2020-03-03T11:33:34.386+05:30,ns_1@cb.local:wait_link_to_couchdb_node<0.280.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.275.0>) died with reason {abnormal,1}
+[ns_server:error,2020-03-03T11:33:43.410+05:30,ns_1@cb.local:wait_link_to_couchdb_node<0.273.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.272.0>) died with reason {abnormal,1}
+[ns_server:error,2020-03-03T11:33:52.233+05:30,ns_1@cb.local:wait_link_to_couchdb_node<0.273.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.272.0>) died with reason {abnormal,1}
+[ns_server:error,2020-03-03T11:34:00.949+05:30,ns_1@cb.local:wait_link_to_couchdb_node<0.273.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.272.0>) died with reason {abnormal,1}
+[ns_server:error,2020-03-03T11:34:09.714+05:30,ns_1@cb.local:wait_link_to_couchdb_node<0.273.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.272.0>) died with reason {abnormal,1}
+[ns_server:error,2020-03-03T11:34:18.423+05:30,ns_1@cb.local:wait_link_to_couchdb_node<0.273.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.272.0>) died with reason {abnormal,1}
+[ns_server:error,2020-03-03T11:34:27.932+05:30,ns_1@cb.local:wait_link_to_couchdb_node<0.273.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.272.0>) died with reason {abnormal,1}
+[ns_server:error,2020-03-03T11:34:37.849+05:30,ns_1@cb.local:wait_link_to_couchdb_node<0.273.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.272.0>) died with reason {abnormal,1}
+[ns_server:error,2020-03-03T11:36:16.775+05:30,nonode@nohost:dist_manager<0.141.0>:dist_manager:init:258]Configured address `cb.local` seems to be invalid. Will refuse to start for safety reasons.
+[ns_server:error,2020-03-03T11:37:17.827+05:30,nonode@nohost:dist_manager<0.141.0>:dist_manager:init:258]Configured address `cb.local` seems to be invalid. Will refuse to start for safety reasons.
+[ns_server:error,2020-03-03T11:38:19.150+05:30,nonode@nohost:dist_manager<0.141.0>:dist_manager:init:258]Configured address `cb.local` seems to be invalid. Will refuse to start for safety reasons.
+[ns_server:error,2020-04-02T21:10:43.456+05:30,ns_1@127.0.0.1:wait_link_to_couchdb_node<0.282.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.281.0>) died with reason {abnormal,1}
+[ns_server:error,2020-04-02T21:10:52.343+05:30,ns_1@127.0.0.1:wait_link_to_couchdb_node<0.275.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.274.0>) died with reason {abnormal,1}
+[ns_server:error,2020-04-02T21:11:01.316+05:30,ns_1@127.0.0.1:wait_link_to_couchdb_node<0.275.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.274.0>) died with reason {abnormal,1}
+[ns_server:error,2020-04-02T21:11:10.359+05:30,ns_1@127.0.0.1:wait_link_to_couchdb_node<0.275.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.274.0>) died with reason {abnormal,1}
+[ns_server:error,2020-04-02T21:11:19.385+05:30,ns_1@127.0.0.1:wait_link_to_couchdb_node<0.275.0>:ns_server_nodes_sup:do_wait_link_to_couchdb_node:189]ns_couchdb_port(<0.274.0>) died with reason {abnormal,1}

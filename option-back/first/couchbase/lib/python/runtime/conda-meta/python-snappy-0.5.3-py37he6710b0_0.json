@@ -1,0 +1,40 @@
+{
+  "arch": "x86_64",
+  "build": "py37he6710b0_0",
+  "build_number": 0,
+  "depends": [
+    "libgcc-ng >=7.3.0",
+    "libstdcxx-ng >=7.3.0",
+    "python >=3.7,<3.8.0a0",
+    "snappy >=1.1.7,<2.0a0"
+  ],
+  "files": [
+    "lib/python3.7/site-packages/python_snappy-0.5.3-py3.7.egg-info",
+    "lib/python3.7/site-packages/snappy/__init__.py",
+    "lib/python3.7/site-packages/snappy/__main__.py",
+    "lib/python3.7/site-packages/snappy/__pycache__/__init__.cpython-37.pyc",
+    "lib/python3.7/site-packages/snappy/__pycache__/__main__.cpython-37.pyc",
+    "lib/python3.7/site-packages/snappy/__pycache__/hadoop_snappy.cpython-37.pyc",
+    "lib/python3.7/site-packages/snappy/__pycache__/snappy.cpython-37.pyc",
+    "lib/python3.7/site-packages/snappy/__pycache__/snappy_cffi.cpython-37.pyc",
+    "lib/python3.7/site-packages/snappy/__pycache__/snappy_cffi_builder.cpython-37.pyc",
+    "lib/python3.7/site-packages/snappy/__pycache__/snappy_formats.cpython-37.pyc",
+    "lib/python3.7/site-packages/snappy/_snappy.cpython-37m-x86_64-linux-gnu.so",
+    "lib/python3.7/site-packages/snappy/hadoop_snappy.py",
+    "lib/python3.7/site-packages/snappy/snappy.py",
+    "lib/python3.7/site-packages/snappy/snappy_cffi.py",
+    "lib/python3.7/site-packages/snappy/snappy_cffi_builder.py",
+    "lib/python3.7/site-packages/snappy/snappy_formats.py"
+  ],
+  "installed_by": "cbpy-installer",
+  "license": "BSD-3-Clause",
+  "license_family": "BSD",
+  "link": null,
+  "md5": "fe2bff55950403ab1f7abea67179460d",
+  "name": "python-snappy",
+  "platform": "linux",
+  "subdir": "linux-64",
+  "timestamp": 1535508162045,
+  "url": "http://repo.anaconda.com/pkgs/main/linux-64/python-snappy-0.5.3-py37he6710b0_0.tar.bz2",
+  "version": "0.5.3"
+}

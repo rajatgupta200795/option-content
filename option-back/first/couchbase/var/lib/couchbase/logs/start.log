@@ -1,0 +1,1 @@
+Couldn't determine proto_dist value. Failed to read from `/opt/couchbase/var/lib/couchbase/config/dist_cfg` file: eacces

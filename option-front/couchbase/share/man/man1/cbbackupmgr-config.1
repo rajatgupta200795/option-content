@@ -1,0 +1,222 @@
+'\" t
+.\"     Title: cbbackupmgr-config
+.\"    Author: Couchbase
+.\" Generator: Asciidoctor 1.5.8
+.\"      Date: 2019-03-06
+.\"    Manual: Backup Manual
+.\"    Source: Backup 1.0.0
+.\"  Language: English
+.\"
+.TH "CBBACKUPMGR\-CONFIG" "1" "2019-03-06" "Backup 1.0.0" "Backup Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cbbackupmgr\-config \- Creates and configures a new backup repository
+.SH "SYNOPSIS"
+.sp
+.nf
+cbbackupmgr config [\-\-archive <archive_dir>] [\-\-repo <repo_name>]
+                   [\-\-exclude\-buckets <bucket_list>] [\-\-include\-buckets <bucket_list>]
+                   [\-\-disable\-bucket\-config] [\-\-disable\-views] [\-\-disable\-eventing]
+                   [\-\-disable\-gsi\-indexes] [\-\-disable\-ft\-indexes]
+                   [\-\-disable\-data] [\-\-vbucket\-filter <integer_list>]
+                   [\-\-disable\-analytics] [\-\-disable\-ft\-alias]
+.fi
+.br
+.SH "DESCRIPTION"
+.sp
+Creates a new backup repository with a new backup configuration. The
+configuration created is used for all backups in this backup repository.
+.sp
+By default a backup configuration is created that will backup all buckets in the
+cluster. Each bucket will have its bucket configuration, views definitions, gsi
+index definitions, full\-text index definitions, and data backed up. Specifying
+various flags, the config command can modify the configuration to backup a
+subset of the data.
+.sp
+Once a backup repository is created its configuration cannot be changed.
+.SH "OPTIONS"
+.sp
+Below are a list of required and optional parameters for the config command.
+.SS "Required"
+.sp
+\-a,\-\-archive <archive_dir>
+.RS 4
+The directory where the new backup repository will be created. If it does
+not already exist, an attempt will be made to create it.
+.RE
+.sp
+\-r,\-\-repo <repo_name>
+.RS 4
+The name of the new backup repository.
+.RE
+.SS "Optional"
+.sp
+\-\-exclude\-buckets <bucket_list>
+.RS 4
+Modifies the repository configuration to back up all buckets not specified
+in <bucket_list>. This flag cannot be specified at the same time as the
+\-\-include\-buckets flag. Takes a comma separated list of bucket names.
+.RE
+.sp
+\-\-include\-buckets <bucket_list>
+.RS 4
+Modifies the repository configuration to only back up the buckets specified
+in <bucket\-list>. This flag cannot be specified at the same time as the
+\-\-exclude\-buckets flag. Takes a comma separated list of bucket names.
+.RE
+.sp
+\-\-disable\-views
+.RS 4
+Modifies the repository configuration to disable backing up view definitions
+for all buckets.
+.RE
+.sp
+\-\-disable\-gsi\-indexes
+.RS 4
+Modifies the repository configuration to disable backing up gsi index
+definitions for all buckets.
+.RE
+.sp
+\-\-disable\-ft\-indexes
+.RS 4
+Modifies the repository configuration to disable backing up full\-text index
+definitions for all buckets.
+.RE
+.sp
+\-\-disable\-ft\-alias
+.RS 4
+Modifies the repository configuration to disable backing up full\-text alias
+definitions.
+.RE
+.sp
+\-\-disable\-data
+.RS 4
+Modifies the repository configuration to disable backing up all key\-value
+data for all buckets.
+.RE
+.sp
+\-\-disable\-analytics
+.RS 4
+Modifies the repository configuration to disable backing up analytics data.
+.RE
+.sp
+\-\-disable\-eventing
+.RS 4
+Modifies the repository configuration to disable backing up the Eventing
+service metadata.
+.RE
+.sp
+\-\-vbucket\-filter <list>
+.RS 4
+Specifies a list of VBuckets that should be backed up in the repo being
+created. VBuckets are specified as a comma separated list of integers. If
+this parameter is not set then all vbuckets are backed up. The comma
+separated list can also take sequences denoted as e.g: 0\-5 this is equivalent
+to 0,1,2,3,4,5.
+.RE
+.SH "EXAMPLES"
+.sp
+The config command is used to create a backup repository and define the
+repositories backup configuration. In the examples below, the backup archive is
+located at /data/backups. Since this is the first backup repository we are
+creating in a new backup archive, we need to ensure that /data/backups is an
+empty directory. Archives are created automatically if an archive doesn\(cqt
+already exist at the archive path, but are only created if the directory at that
+path is empty. In order to create a backup repository called "example" with the
+default configuration use the following command:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr config \-a /data/backups \-r example
+.fi
+.if n .RE
+.sp
+Upon creation of a new backup repository there will be a new directory in the
+backup archive containing a backup configuration. You can see this new directory
+using the cbbackupmgr\-list[1] command.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr list \-a /data/backups
+Size      Items          Name
+0B        \-              + example
+.fi
+.if n .RE
+.sp
+Using the optional parameters of the create command, you can modify the backup
+configuration settings. To create a backup repository with a backup
+configuration that only backs up the buckets "airline_data" and "ticket_prices"
+and does not back up up bucket configuration data, you can run the following:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr config \-a /data/backups \-r example \(rs
+ \-\-include\-buckets airline_data,ticket_prices \-\-disable\-bucket\-config
+.fi
+.if n .RE
+.sp
+To create a backup repository with a backup configuration that backs up only
+data on all buckets, you can run the following command:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr config \-a /data/backups \-r example \-\-disable\-bucket\-config \(rs
+ \-\-disable\-views \-\-disable\-gsi\-indexes \-\-disable\-ft\-indexes
+.fi
+.if n .RE
+.SH "DISCUSSION"
+.sp
+Though not required, it is recommended that there is a single backup repository
+per cluster. Backup repositories are managed so that all backups can be taken
+incrementally and merged together as backup data ages. Backing up in this manner
+allows backups to transfer the least amount of data necessary which reduces back
+up time and cluster resource usage. For more details on backup strategies see
+cbbackupmgr\-strategies[7].
+.sp
+When a backup repository is created, it should only be modified by the
+cbbackupmgr utility. Any modifications done outside of this utility can cause
+corruption of backup files.
+.SH "ENVIRONMENT AND CONFIGURATION VARIABLES"
+.sp
+CB_ARCHIVE_PATH
+.RS 4
+Specifies the path to the backup archive. If the archive path is supplied as
+a command line argument then this value is overridden.
+.RE
+.SH "FILES"
+.sp
+backup\-meta.json
+.RS 4
+The config command creates a backup configuration file in the backup
+repository called backup\-meta.json. This file contains the backup
+configuration for all backups run in the backup repository it was created
+in. It should never be modified and treated as a read\-only file.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBcbbackupmgr\-list\fP(1),
+\fBcbbackupmgr\-strategies\fP(1)
+.SH "CBBACKUPMGR"
+.sp
+Part of the \fBcbbackupmgr\fP(1) suite
+.SH "AUTHOR"
+.sp
+Couchbase

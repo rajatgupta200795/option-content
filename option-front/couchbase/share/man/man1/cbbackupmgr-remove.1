@@ -1,0 +1,224 @@
+'\" t
+.\"     Title: cbbackupmgr-remove
+.\"    Author: Couchbase
+.\" Generator: Asciidoctor 2.0.10
+.\"      Date: 2019-09-20
+.\"    Manual: Backup Manual
+.\"    Source: Backup 1.0.0
+.\"  Language: English
+.\"
+.TH "CBBACKUPMGR\-REMOVE" "1" "2019-09-20" "Backup 1.0.0" "Backup Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cbbackupmgr\-remove \- Removes a backup repository from the backup archive
+.SH "SYNOPSIS"
+.sp
+.sp
+.nf
+cbbackupmgr remove [\-\-archive <archive_dir>] [\-\-repo <repo_name>]
+                   [\-\-backups <backup_range>]
+.fi
+.br
+.SH "DESCRIPTION"
+.sp
+Removes a backup repository from the backup archive. All contents of the
+specified repository will be deleted from disk.
+.SH "OPTIONS"
+.sp
+Below are a list of parameters for the remove command.
+.sp
+\-a,\-\-archive <archive_dir>
+.RS 4
+The location of the archive directory.
+.RE
+.sp
+\-r,\-\-repo <repo_name>
+.RS 4
+The name of the backup repository to remove.
+.RE
+.sp
+\-\-backups <backup_range>
+.RS 4
+This flag will take either a single backup directory
+(e.g 2019\-08\-23T09_36_56.957232625Z) or a comma separated range containing
+the start/end date of the backups to be deleted (inclusive). The accepted
+formats are dd\-mm\-yy, backup directory name or backup index, with the first
+backup being number 0. To read more about format  go to the section BACKUP
+RANGES.
+.RE
+.SH "BACKUP RANGES"
+.sp
+The remove command accepts a pair of dates or indices using the \f(CR\-\-backups\fP argument
+which can be used to refine which backups in the repository to remove.
+.sp
+When given the backup range \(aq0,5\(aq remove will delete all of the backups in chronological
+order starting from the first backup, finishing with the fifth backup.
+.sp
+When given the backup range \(aq20\-08\-2019,23\-08\-2019\(aq remove will delete all the backups
+which fall within these two dates. Note that the format must be \(aqday\-month\-year\(aq this means
+that \(aq01\-30\-19\(aq is an invalid date and will be rejected by merge.
+.sp
+Remove also accepts a backup range using the names of backups e.g. \(aq2019\-08\-23T09_36_56.957232625Z\(aq.
+Therefore, given the backup range \(aq2019\-08\-20T11_39_34.232308323Z, 2019\-08\-23T09_36_56.957232625Z\(aq
+remove will delete all backups which fall within these two backups (inclusive).
+.SH "EXAMPLES"
+.sp
+The remove command is used to remove a backup repository from disk. Below is an
+example of how to run the remove command. The /data/backup directory is used as
+the archive directory and the backup repository is named "example".
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr list \-a /data/backup
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+Size      Items          Name
+91.52MB   \-              /
+91.52MB   \-              + example
+91.52MB   \-                  + 2016\-02\-12T12:45:33.329408761\-08:00
+91.52MB   \-                      + travel\-sample
+322B      0                          bucket\-config.json
+91.51MB   31569                      + data
+91.51MB   31569                          shard_0.fdb
+2B        0                          full\-text.json
+10.00KB   8                          gsi.json
+1.72KB    1                          views.json
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr remove \-a /data/backup \-r example
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+Backup repository `example` deleted successfully from archive `/tmp/backup`
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr list \-a /data/backup
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+Size      Items          Name
+0B        \-              /
+.fi
+.if n .RE
+.sp
+The remove command can also be use to remove backups from inside a repository
+given the following archive:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr info \-a /data/backup \-r example
+Name     | Size     | # Backups  |
+example  | 36.01MB  | 3          |
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
++  Backup                            | Size     | Type  | Source                 | Range  | Events  | Aliases  | Complete  |
++  2019\-09\-18T11_13_58.136188+01_00  | 12.00MB  | FULL  | http://localhost:8091  | N/A    | 0       | 1        | true      |
++  2019\-09\-19T11_14_29.026324+01_00  | 12.00MB  | INCR  | http://localhost:8091  | N/A    | 0       | 1        | true      |
++  2019\-09\-19T11_14_40.410627+01_00  | 12.00MB  | INCR  | http://localhost:8091  | N/A    | 0       | 1        | true      |
++  2019\-09\-20T11_14_43.410627+01_00  | 12.00MB  | INCR  | http://localhost:8091  | N/A    | 0       | 1        | true      |
+.fi
+.if n .RE
+.sp
+We can delete the first two backups using indices range such as 0,1:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr remove \-a ~/backup_repo \-r example \-\-backups 0,1
+Backup `2019\-09\-18T11_13_58.136188+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+Backup `2019\-09\-19T11_14_29.026324+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+All backups in range `0,1` were deleted
+.fi
+.if n .RE
+.sp
+To delete only backup \f(CR2019\-09\-19T11_14_29.026324+01_0\fP we can do as follows:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr remove \-a ~/backup_repo \-r example \-\-backups 2019\-09\-19T11_14_29.026324+01_0
+Backup `2019\-09\-19T11_14_29.026324+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+.fi
+.if n .RE
+.sp
+To delete backups between the 18\-09\-2019 and 19\-09\-2019 we can do as follow:
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr remove \-a ~/backup_repo \-r example \-\-backups 18\-09\-2019,19\-09\-2019
+Backup `2019\-09\-18T11_13_58.136188+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+Backup `2019\-09\-19T11_14_29.026324+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+Backup `2019\-09\-19T11_14_40.410627+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+Backup `2019\-09\-19T11_14_29.026324+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+All backups in range `18\-09\-2019,18\-09\-2019` were deleted
+.fi
+.if n .RE
+.sp
+Finally, we can also provide exact backup archive name ranges such as
+2019\-09\-18T11_13_58.136188+01_00,2019\-09\-19T11_14_29.026324+01_00.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr remove \-a ~/backup_repo \-r example \-\-backups 2019\-09\-18T11_13_58.136188+01_00,2019\-09\-19T11_14_29.026324+01_00
+Backup `2019\-09\-18T11_13_58.136188+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+Backup `2019\-09\-19T11_14_29.026324+01_00` deleted successfully from archive `/Users/carlosbetancourt/backup_repo` repository `example`
+All backups in range `2019\-09\-18T11_13_58.136188+01_00,2019\-09\-19T11_14_29.026324+01_00` were deleted
+.fi
+.if n .RE
+.SH "DISCUSSION"
+.sp
+The remove command is used to safely remove a backup repository from an archive.
+This command is provided because only the cbbackupmgr utility should ever be
+used to access or modify a backup archive. Removing a backup repository will
+remove data permanently from disk. Data is not recoverable once it has been
+removed.
+.SH "ENVIRONMENT AND CONFIGURATION VARIABLES"
+.sp
+CB_ARCHIVE_PATH
+.RS 4
+Specifies the path to the backup archive. If the archive path is supplied as
+a command line argument then this value is overridden.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBcbbackupmgr\-config\fP(1),
+\fBcbbackupmgr\-list\fP(1),
+\fBcbbackupmgr\-strategies\fP(1)
+.SH "CBBACKUPMGR"
+.sp
+Part of the \fBcbbackupmgr\fP(1) suite
+.SH "AUTHOR"
+.sp
+Couchbase

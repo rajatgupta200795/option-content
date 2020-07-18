@@ -1,0 +1,37 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>character filter</th>
+      <th>type</th>
+      <th class="text-right">
+        <button
+           ng-if="!viewOnlyModal"
+           ng-click="newCharFilter()" type="button"
+           class="outline"
+           style="width:200px;">
+          + Add Character Filter
+        </button>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="(cfname,cfval) in indexMapping.analysis.char_filters">
+      <td><a ng-click="editCharFilter(cfname, cfval, true)">{{cfname}}</a></td>
+      <td>{{cfval.type}}</td>
+      <td class="controls">
+          <a href=""
+              ng-if="!viewOnlyModal"
+                  ng-click="editCharFilter(cfname, cfval)">
+                  Edit
+          </a>
+          <a href="" ng-if="!viewOnlyModal"
+                  ng-click="deleteCharFilter(cfname)">
+Delete
+          </a>
+      </td>
+    </tr>
+    <tr ng-show="Utils.keys(indexMapping.analysis.char_filters).length < 1">
+      <td colspan="3">None</td>
+    </tr>
+  </tbody>
+</table>

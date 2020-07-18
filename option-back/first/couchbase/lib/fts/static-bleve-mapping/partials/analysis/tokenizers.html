@@ -1,0 +1,40 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>tokenizer</th>
+      <th>type</th>
+      <th class="text-right">
+        <button
+           ng-if="!viewOnlyModal"
+           ng-click="newTokenizer()" type="button"
+           class="outline"
+           style="width:200px;">
+          + Add Tokenizer
+        </button>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="(tname,tval) in indexMapping.analysis.tokenizers">
+      <td><a ng-click="editTokenizer(tname, tval, true)">{{tname}}</a></td>
+      <td>{{tval.type}}</td>
+      <td class="controls">
+        <a
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="editTokenizer(tname, tval)">
+          Edit
+        </a>
+        <a
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="deleteTokenizer(tname)">
+          Delete
+        </a>
+      </td>
+    </tr>
+    <tr ng-show="Utils.keys(indexMapping.analysis.tokenizers).length < 1">
+      <td colspan="3">None</td>
+    </tr>
+  </tbody>
+</table>

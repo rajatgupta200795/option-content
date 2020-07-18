@@ -1,0 +1,41 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>analyzer name</th>
+      <th class="text-right">
+        <button
+           ng-if="!viewOnlyModal && showAnalyzer"
+           ng-click="newAnalyzer()" type="button"
+           ng-show="showAnalyzer"
+           class="outline"
+           style="width:200px;">
+          + Add Analyzer
+        </button>
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="(aname,aval) in indexMapping.analysis.analyzers">
+      <td><a ng-click="editAnalyzer(aname, aval, true)">{{aname}}</a></td>
+      <td class="controls">
+        <a
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="editAnalyzer(aname, aval)">
+          Edit
+        </a>
+        <a
+           href=""
+           ng-if="!viewOnlyModal"
+           ng-click="deleteAnalyzer(aname)">
+          Delete
+        </a>
+      </td>
+    </tr>
+    <tr ng-show="Utils.keys(indexMapping.analysis.analyzers).length < 1">
+      <td colspan="2">None</td>
+    </tr>
+  </tbody>
+  <tfoot>
+  </tfoot>
+</table>

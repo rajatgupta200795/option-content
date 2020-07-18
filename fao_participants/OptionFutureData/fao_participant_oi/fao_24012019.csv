@@ -1,0 +1,7 @@
+"""Participant wise Open Interest (no. of contracts) in Equity Derivatives as on January 24"," 2019""",,,,,,,,,,,,,,
+Client Type,Future Index Long,Future Index Short,Future Stock Long,Future Stock Short,Option Index Call Long,Option Index Put Long,Option Index Call Short,Option Index Put Short,Option Stock Call Long,Option Stock Put Long,Option Stock Call Short,Option Stock Put Short,Total Long Contracts,Total Short Contracts
+Client,174617,147049,885190,275864,456737,461595,522697,720100,389992,151417,276778,161397,2519548,2103885
+DII,58828,31441,24321,991920,24444,90793,0,0,0,0,0,0,198386,1023361
+FII,216729,260559,881987,558171,220006,429209,85448,206063,48354,53084,51958,44489,1849369,1206688
+Pro,23767,34892,175908,141451,139588,150250,232630,205684,63393,71869,173003,70484,624775,858144
+TOTAL,473941,473941,1967406,1967406,840775,1131847,840775,1131847,501739,276370,501739,276370,5192078,5192078

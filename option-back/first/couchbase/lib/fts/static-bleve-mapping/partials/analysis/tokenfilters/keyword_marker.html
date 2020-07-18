@@ -1,0 +1,8 @@
+<div class="formrow">
+  <label>Keywords</label>
+  <select ng-disabled="viewOnlyModal"
+          ng-model="tokenfilter.keywords_token_map"
+          id="tokenfilterTokenMaps">
+    <option ng-repeat="tokenMap in tokenMapNames">{{tokenMap}}</option>
+  </select>
+</div>

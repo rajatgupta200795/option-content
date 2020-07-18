@@ -1,0 +1,124 @@
+<div class="fts-index-mapping">
+<div ng-class="{'viewOnly': viewOnly}">
+
+<!-- TYPE MAPPINGS ********************************** -->
+  <div class="row min-height-2 margin-bottom-half">
+    <label
+       class="disclosed reverse"
+       ng-class="{disclosure : hideTypeMaps}"
+       ng-click="hideTypeMaps = !hideTypeMaps">
+      Type Mappings
+    </label>
+    <button
+       class="outline"
+       ng-click="addChildMapping(null)"
+       ng-show="!hideTypeMaps"
+       style="width:200px;">
+      + Add Type Mapping
+    </button>
+  </div>
+  <div ng-show="!hideTypeMaps" class="indent-1 margin-bottom1 form-inline">
+    <div ng-include="static_prefix + '/partials/mapping/type-mapping.html'"></div>
+  </div>
+
+<!-- ANALYZERS *********************************** -->
+  <div class="row min-height-2 margin-bottom-half">
+    <label
+       class="disclosure"
+       ng-class="{disclosed : showAnalyzer}"
+       ng-click="showAnalyzer = !showAnalyzer">
+      Analyzers
+    </label>
+  </div>
+  <div ng-show="showAnalyzer" class="indent-1 margin-bottom1">
+    <div ng-include src="static_prefix + '/partials/analysis/analyzers.html'"></div>
+  </div>
+
+<!-- FILTERS *********************************** -->
+  <div class="row min-height-2 margin-bottom-half">
+    <label
+       class="disclosure"
+       ng-class="{disclosed : showFilters}"
+       ng-click="showFilters = !showFilters">
+      Custom Filters
+    </label>
+  </div>
+  <div ng-show="showFilters" class="indent-1 margin-bottom1">
+    <uib-tabset>
+      <uib-tab heading="Character Filters">
+        <div ng-include src="static_prefix + '/partials/analysis/charfilters.html'"></div>
+      </uib-tab>
+      <uib-tab heading="Tokenizers">
+        <div ng-include src="static_prefix + '/partials/analysis/tokenizers.html'"></div>
+      </uib-tab>
+      <uib-tab heading="Token Filters">
+        <div ng-include src="static_prefix + '/partials/analysis/tokenfilters.html'"></div>
+      </uib-tab>
+      <uib-tab heading="Word Lists">
+        <div ng-include src="static_prefix + '/partials/analysis/wordlists.html'"></div>
+      </uib-tab>
+    </uib-tabset>
+  </div>
+
+<!-- DATE TIME PARSERS *********************************** -->
+  <div class="row min-height-2 margin-bottom-half">
+    <label
+       class="disclosure"
+       ng-class="{disclosed : showDatetimeParser}"
+       ng-click="showDatetimeParser = !showDatetimeParser">
+      Date/Time Parsers
+    </label>
+  </div>
+  <div ng-show="showDatetimeParser" class="indent-1 margin-bottom1">
+    <div ng-include src="static_prefix + '/partials/analysis/datetimeparsers.html'"></div>
+  </div>
+
+<!-- ADVANCED SETTINGS *********************************** -->
+  <div class="min-height-2 margin-bottom-half">
+    <label
+       class="disclosure"
+       ng-class="{disclosed : showAdvanced}"
+       ng-click="showAdvanced = !showAdvanced">
+      Advanced
+    </label>
+  </div>
+
+<div ng-show="showAdvanced" class="width-480 indent-1">
+      <div class="formrow">
+        <label>Default Type</label>
+        <input type="text"
+               ng-disabled="viewOnly"
+               ng-model="indexMapping.default_type">
+      </div>
+      <div class="formrow">
+        <label>Default Analyzer</label>
+        <select ng-disabled="viewOnly"
+                ng-model="indexMapping.default_analyzer"
+                ng-options="t as t for t in analyzerNames">
+        </select>
+      </div>
+      <div class="formrow">
+        <label>Default Date/Time Parser</label>
+        <select ng-disabled="viewOnly"
+                ng-model="indexMapping.default_datetime_parser"
+                ng-options="t as t for t in dateTimeParserNames">
+        </select>
+      </div>
+      <div class="formrow">
+        <label>Default Field</label>
+        <input type="text" class="form-control"
+               ng-disabled="viewOnly"
+               ng-model="indexMapping.default_field">
+      </div>
+      <div class="formrow">
+        <input id="for-store_dynamic-fts" type="checkbox" ng-disabled="viewOnly" ng-model="indexMapping.store_dynamic">
+        <label for="for-store_dynamic-fts">Store Dynamic Fields</label>
+      </div>
+      <div class="formrow">
+        <input id="for-index-dynamic-fts" type="checkbox" ng-disabled="viewOnly" ng-model="indexMapping.index_dynamic">
+        <label for="for-index-dynamic-fts">Index Dynamic Fields</label>
+      </div>
+</div>
+
+</div>
+</div>

@@ -1,0 +1,36 @@
+<div class="formrow">
+  <label>Exception Patterns</label>
+  <ul class="list-text"
+      ng-show="tokenizer.exceptions.length > 0"
+      ng-sortable
+      ng-model="tokenizer.exceptions">
+    <li
+        ng-repeat="e in tokenizer.exceptions track by $index">
+      <div class="row">
+        {{ e }}
+        <a ng-if="!viewOnlyModal"
+           href=""
+           ng-click="removeException($index)">
+          remove
+        </a>
+      </div>
+    </li>
+  </ul>
+
+<div ng-if="!viewOnlyModal" class="row input-append">
+  <input ng-model="newregexp" type="text"
+             id="exceptionRegexp">
+      <button ng-click="addException(this)" type="button"
+              class="outline">+ Add</button>
+    </div>
+  </div>
+
+<div class="formrow">
+  <label>Tokenizer for Remaining Input</label>
+  <select ng-disabled="viewOnlyModal"
+          ng-change="tokenizerChanged()"
+          ng-model="tokenizer.tokenizer"
+          id="tokenizer">
+    <option ng-repeat="tokenizer in tokenizerNames">{{tokenizer}}</option>
+  </select>
+</div>

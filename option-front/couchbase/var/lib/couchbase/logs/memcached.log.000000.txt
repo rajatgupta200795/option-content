@@ -1,0 +1,76 @@
+2020-04-02T20:08:15.889232+05:30 INFO ---------- Opening logfile: /opt/couchbase/var/lib/couchbase/logs/memcached.log.000000.txt
+2020-04-02T20:08:15.890723+05:30 INFO Couchbase version 6.5.0-4966 starting.
+2020-04-02T20:08:15.890990+05:30 INFO Breakpad enabled. Minidumps will be written to '/opt/couchbase/var/lib/couchbase/crash'
+2020-04-02T20:08:15.891498+05:30 INFO Using SLA configuration: {"COMPACT_DB":{"slow":"1800 s"},"DELETE_BUCKET":{"slow":"10 s"},"SEQNO_PERSISTENCE":{"slow":"30 s"},"comment":"Current MCBP SLA configuration","default":{"slow":"500 ms"},"version":1}
+2020-04-02T20:08:15.891501+05:30 INFO Enable standard input listener
+2020-04-02T20:08:15.891545+05:30 INFO NUMA: Set memory allocation policy to 'interleave'
+2020-04-02T20:08:15.891555+05:30 INFO Loading RBAC configuration from [/opt/couchbase/var/lib/couchbase/config/memcached.rbac]
+2020-04-02T20:08:15.891663+05:30 INFO Loading error maps from [/opt/couchbase/etc/couchbase/kv/error_maps]
+2020-04-02T20:08:15.892133+05:30 INFO Starting external authentication manager
+2020-04-02T20:08:15.894709+05:30 INFO Audit descriptor 20492 changed from: disabled to: enabled
+2020-04-02T20:08:15.894715+05:30 INFO Audit descriptor 20487 changed from: disabled to: enabled
+2020-04-02T20:08:15.894716+05:30 INFO Audit descriptor 20486 changed from: disabled to: enabled
+2020-04-02T20:08:15.894716+05:30 INFO Audit descriptor 20484 changed from: disabled to: enabled
+2020-04-02T20:08:15.894717+05:30 INFO Audit descriptor 20483 changed from: disabled to: enabled
+2020-04-02T20:08:15.894723+05:30 INFO Audit descriptor 20482 changed from: disabled to: enabled
+2020-04-02T20:08:15.894723+05:30 INFO Audit descriptor 20481 changed from: disabled to: enabled
+2020-04-02T20:08:15.894724+05:30 INFO Audit descriptor 20480 changed from: disabled to: enabled
+2020-04-02T20:08:15.894727+05:30 INFO Changing logging level to 0
+2020-04-02T20:08:15.903343+05:30 INFO Create bucket "<internal>" by using "nobucket.so"
+2020-04-02T20:08:15.903733+05:30 INFO Enable port(s)
+2020-04-02T20:08:15.904120+05:30 INFO 9 Listen on IPv4: 0.0.0.0:11210
+2020-04-02T20:08:15.904172+05:30 INFO 10 Listen on IPv6: [::]:11210
+2020-04-02T20:08:15.904245+05:30 INFO 11 Listen on IPv4: 0.0.0.0:11209
+2020-04-02T20:08:15.904279+05:30 INFO 12 Listen on IPv6: [::]:11209
+2020-04-02T20:08:15.905337+05:30 INFO Initialization complete. Accepting clients.
+2020-04-02T20:08:15.937968+05:30 INFO 40: Client 127.0.0.1:47521 authenticated as <ud>@ns_server</ud>
+2020-04-02T20:08:15.937986+05:30 INFO 39: Client 127.0.0.1:53349 authenticated as <ud>@ns_server</ud>
+2020-04-02T20:08:15.938099+05:30 INFO 39: HELO [regular] [ 127.0.0.1:53349 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ]
+2020-04-02T20:08:15.938134+05:30 INFO 40: HELO [regular] [ 127.0.0.1:47521 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ]
+2020-04-02T20:08:15.938207+05:30 INFO 40: Loading RBAC configuration from [/opt/couchbase/var/lib/couchbase/config/memcached.rbac] [ 127.0.0.1:47521 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ]
+2020-04-02T20:08:15.938302+05:30 INFO 40: RBAC configuration updated [ 127.0.0.1:47521 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ]
+2020-04-02T20:08:15.942912+05:30 INFO 39: Client 127.0.0.1:39821 authenticated as <ud>@ns_server</ud>
+2020-04-02T20:08:15.943010+05:30 INFO 39: HELO [regular] [ 127.0.0.1:39821 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ]
+2020-04-02T20:08:15.943057+05:30 INFO Reloading config file /opt/couchbase/var/lib/couchbase/config/memcached.json
+2020-04-02T20:08:15.943153+05:30 INFO Change datatype_snappy from false to true
+2020-04-02T20:08:15.943165+05:30 INFO Change scram fallback salt from <ud>c2FsdA==</ud> to <ud>NXRGrWeBnsxkeXeF</ud>
+2020-04-02T20:08:16.764073+05:30 INFO 39: Client 127.0.0.1:54793 authenticated as <ud>@ns_server</ud>
+2020-04-02T20:08:16.764539+05:30 INFO 39: HELO [regular] [ 127.0.0.1:54793 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ]
+2020-04-02T20:08:16.807644+05:30 INFO 40: Client 127.0.0.1:46491 authenticated as <ud>@ns_server</ud>
+2020-04-02T20:08:16.807963+05:30 INFO 40: HELO [regular] [ 127.0.0.1:46491 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ]
+2020-04-02T20:08:16.808229+05:30 INFO 40: [ 127.0.0.1:46491 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ] Updated global cluster configuration. New revision: 4
+2020-04-02T20:08:16.808312+05:30 INFO Pushing new cluster config for bucket:[] revision:[4]
+2020-04-02T20:08:16.810086+05:30 INFO 40: [ 127.0.0.1:46491 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ] Updated global cluster configuration. New revision: 6
+2020-04-02T20:08:16.810149+05:30 INFO Pushing new cluster config for bucket:[] revision:[6]
+2020-04-02T20:10:27.513490+05:30 INFO Received shutdown request
+2020-04-02T20:10:27.513518+05:30 INFO Initiating graceful shutdown.
+2020-04-02T20:10:27.513521+05:30 INFO Stop all buckets
+2020-04-02T20:10:27.513527+05:30 INFO Shutting down audit daemon
+2020-04-02T20:10:27.513663+05:30 INFO Shutting down client worker threads
+2020-04-02T20:10:27.513681+05:30 INFO Stopping worker thread 0
+2020-04-02T20:10:27.513686+05:30 INFO Stopping worker thread 2
+2020-04-02T20:10:27.513688+05:30 INFO 40: The connected bucket is being deleted.. closing connection [ 127.0.0.1:46491 - 127.0.0.1:11209 (<ud>@ns_server</ud>) ]
+2020-04-02T20:10:27.513723+05:30 INFO Stopping worker thread 1
+2020-04-02T20:10:27.513781+05:30 INFO Stopping worker thread 3
+2020-04-02T20:10:27.514010+05:30 INFO Releasing server sockets
+2020-04-02T20:10:27.514014+05:30 INFO Shutting down IPv4 interface: 0.0.0.0:11210
+2020-04-02T20:10:27.514024+05:30 INFO Shutting down IPv6 interface: [::]:11210
+2020-04-02T20:10:27.514031+05:30 INFO Shutting down IPv4 interface: 0.0.0.0:11209
+2020-04-02T20:10:27.514035+05:30 INFO Shutting down IPv6 interface: [::]:11209
+2020-04-02T20:10:27.514041+05:30 INFO Releasing client resources
+2020-04-02T20:10:27.514042+05:30 INFO Releasing bucket resources
+2020-04-02T20:10:27.514052+05:30 INFO Shutting down RBAC subsystem
+2020-04-02T20:10:27.514055+05:30 INFO Releasing thread resources
+2020-04-02T20:10:27.514090+05:30 INFO Shutting down executor pool
+2020-04-02T20:10:27.514235+05:30 INFO Releasing signal handlers
+2020-04-02T20:10:27.514240+05:30 INFO Shutting down external authentication service
+2020-04-02T20:10:27.514267+05:30 INFO Shutting down SASL server
+2020-04-02T20:10:27.514269+05:30 INFO Releasing connection objects
+2020-04-02T20:10:27.514269+05:30 INFO Deinitialising tracing
+2020-04-02T20:10:27.514278+05:30 INFO Shutting down engine map
+2020-04-02T20:10:27.514464+05:30 INFO Removing breakpad
+2020-04-02T20:10:27.514475+05:30 INFO Releasing callbacks
+2020-04-02T20:10:27.514478+05:30 INFO Shutting down OpenSSL
+2020-04-02T20:10:27.514482+05:30 INFO Shutting down libevent
+2020-04-02T20:10:27.514494+05:30 INFO Shutting down logger extension
+2020-04-02T20:10:27.514668+05:30 INFO ---------- Closing logfile

@@ -1,0 +1,8 @@
+<div class="formrow">
+  <label for="tokenfilterTokenMaps">Articles</label>
+  <select ng-disabled="viewOnlyModal"
+          ng-model="tokenfilter.articles_token_map"
+          id="tokenfilterTokenMaps">
+    <option ng-repeat="tokenMap in tokenMapNames">{{tokenMap}}</option>
+  </select>
+</div>

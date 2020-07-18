@@ -1,0 +1,13 @@
+{
+  "service": "cbas",
+  "proxy-strategy": "sticky",
+  "rest-api-prefixes": {
+    "cbas": {
+      "portName": "cbas_http_port"
+    }
+  },
+  "version-dirs": [
+    {"version": [5, 0], "dir": "."}
+  ],
+  "doc-root": "cbas-ui"
+}

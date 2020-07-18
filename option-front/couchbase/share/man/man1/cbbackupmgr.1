@@ -1,0 +1,222 @@
+'\" t
+.\"     Title: cbbackupmgr
+.\"    Author: Couchbase
+.\" Generator: Asciidoctor 2.0.10
+.\"      Date: 2019-10-04
+.\"    Manual: Backup Manual
+.\"    Source: Backup 1.0.0
+.\"  Language: English
+.\"
+.TH "CBBACKUPMGR" "1" "2019-10-04" "Backup 1.0.0" "Backup Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cbbackupmgr \- A utility for backing up and restoring a Couchbase cluster
+.SH "SYNOPSIS"
+.sp
+.sp
+.nf
+cbbackupmgr [\-\-version] [\-\-help] <command> [<args>]
+.fi
+.br
+.SH "DESCRIPTION"
+.sp
+cbbackupmgr is a high performance backup and restore client for Couchbase
+Server.
+.sp
+See \fBcbbackupmgr\-tutorial\fP(7) to get started. For more information on
+how specific commands work you can run "cbbackupmgr <command> \-\-help". For
+backup strategies see \fBcbbackupmgr\-strategies\fP(7).
+.SH "OPTIONS"
+.sp
+\-\-version
+.RS 4
+Prints the cbbackupmgr suite version that the cbbackupmgr program came from.
+.RE
+.sp
+\-\-help
+.RS 4
+Prints the synopsis and a list of commands. If a cbbackupmgr command is
+named, this option will bring up the manual page for that command.
+.RE
+.SH "CBBACKUPMGR COMMANDS"
+.sp
+\fBcbbackupmgr\-backup\fP(1)
+.RS 4
+Backs up data from a Couchbase cluster.
+.RE
+.sp
+\fBcbbackupmgr\-collect\-logs\fP(1)
+.RS 4
+Collects diagnostic information.
+.RE
+.sp
+\fBcbbackupmgr\-compact\fP(1)
+.RS 4
+Compacts a backup.
+.RE
+.sp
+\fBcbbackupmgr\-config\fP(1)
+.RS 4
+Creates a new backup repository.
+.RE
+.sp
+\fBcbbackupmgr\-list\fP(1)
+.RS 4
+Lists backups in the archive.
+.RE
+.sp
+\fBcbbackupmgr\-merge\fP(1)
+.RS 4
+Merges backups together.
+.RE
+.sp
+\fBcbbackupmgr\-remove\fP(1)
+.RS 4
+Deletes a backup repository.
+.RE
+.sp
+\fBcbbackupmgr\-restore\fP(1)
+.RS 4
+Restores a backup from the archive.
+.RE
+.SH "IDENTIFIER TERMINOLOGY"
+.sp
+<archive>
+.RS 4
+The root directory containing multiple backup repositories. This is the
+top\-level backup directory and contains all backup data as well as backup
+logs.
+.RE
+.sp
+<repository>
+.RS 4
+Contains a backup configuration used for taking actual backups. A repository
+should be created for a specific Couchbase cluster and it will contain
+multiple incremental backups.
+.RE
+.sp
+<backup>
+.RS 4
+A backup of a Couchbase cluster at a given point in time. All backups are
+incremental backups.
+.RE
+.sp
+<bucket>
+.RS 4
+A backup may consist of one or more buckets. Each bucket is stored separately.
+.RE
+.SH "FILE/DIRECTORY STRUCTURE"
+.sp
+Please see the \fBcbbackupmgr\-archivelayout\fP(7) document.
+.SH "ENVIRONMENT AND CONFIGURATION VARIABLES"
+.sp
+CB_CLUSTER
+.RS 4
+Specifies the hostname of the Couchbase cluster to connect to. If the
+hostname is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_USERNAME
+.RS 4
+Specifies the username for authentication to a Couchbase cluster. If the
+username is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_PASSWORD
+.RS 4
+Specifies the password for authentication to a Couchbase cluster. If the
+password is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_ARCHIVE_PATH
+.RS 4
+Specifies the path to the backup archive. If the archive path is supplied as
+a command line argument then this value is overridden.
+.RE
+.SH "DISCUSSION"
+.sp
+The cbbackupmgr command is used for backing up Couchbase clusters, managing
+those backups, and restoring them.
+.sp
+The cbbackupmgr command was built around the concept of taking only incremental
+backups. This concept is important because as the data in a cluster grows it
+becomes increasingly difficult to take full backups in a reasonable amount of
+time. By taking incremental backups we are able to reduce the time it takes to
+backup a cluster by ensuring that we transfer the smallest amount of data
+possible each time we back the cluster up.
+.sp
+A consequence of taking incremental backups is that we must know about the
+previous backups that we have taken in order to know where we left off. This
+means that the cbbackupmgr command must manage the backups it has taken. The
+cbbackupmgr command does this by using the concept of a backup archive and a
+backup repository. A backup repository is a directory that contains a backup
+configuration for backing up a specific cluster. Normally there will be one
+backup repository per Couchbase cluster. Each time you want to back up this
+cluster you will specify this backup repository with the cbbackupmgr\-backup
+command and the backup tool will automatically find where the last backup
+finished and incrementally backup new data in that cluster.
+.sp
+The backup archive is the top\-level directory and contains one or more backup
+repositories and a logs folder. Logging for all backup repositories is contained
+in the logs folder in the backup.log file. For more information on the backup
+archive structure see \fBcbbackupmgr\-archivelayout\fP(7).
+.sp
+In an incremental approach the amount of data being stored in the backup archive
+is always increasing. To handle this issue the backup command allows backups to
+be merged together. This allows data to be de\-duplicated resulting in a single
+backup that takes up less disk space than the multiple previous backups. More
+information about how to take advantage of incremental backups and merges is
+contained in \fBcbbackupmgr\-strategies\fP(7).
+.sp
+The minumum hardware requirement for running cbbackupmgr is four CPU cores,
+8GiB RAM. The recommend hardware is sixteen CPU cores, 16GiB RAM and SSD disks.
+.SH "FURTHER DOCUMENTATION"
+.sp
+A tutorial for getting started with the backup command is also available in
+\fBcbbackupmgr\-tutorial\fP(7).
+.sp
+A guide for production backup strategies is available in
+\fBcbbackupmgr\-strategies\fP(7).
+.SH "AUTHORS"
+.sp
+cbbackupmgr is a Couchbase Enterprise Edition tool and was written by Couchbase.
+.SH "REPORTING BUGS"
+.sp
+Report urgent issues to the Couchbase Support Team at \c
+.MTO "support\(atcouchbase.com" "" "."
+Bugs can be reported to the Couchbase Jira Bug Tracker at
+.URL "http://www.couchbase.com/issues" "" "."
+.SH "SEE ALSO"
+.sp
+\fBcbbackupmgr\-tutorial\fP(7),
+\fBcbbackupmgr\-archivelayout\fP(7),
+\fBcbbackupmgr\-config\fP(7),
+\fBcbbackupmgr\-backup\fP(7),
+\fBcbbackupmgr\-restore\fP(7)
+.SH "CBBACKUPMGR"
+.sp
+Part of the \fBcbbackupmgr\fP(1) suite
+.SH "AUTHOR"
+.sp
+Couchbase

@@ -1,0 +1,16 @@
+[couchdb:info,2020-04-02T20:08:15.509+05:30,couchdb_ns_1@cb.local:cb_couch_sup<0.132.0>:couch_log:info:41]Apache CouchDB has started on http://0.0.0.0:8092/
+[couchdb:info,2020-04-02T20:09:15.402+05:30,couchdb_ns_1@cb.local:couch_query_logger<0.182.0>:couch_log:info:41]Query-Volume
+---
+[couchdb:info,2020-04-02T20:10:15.403+05:30,couchdb_ns_1@cb.local:couch_query_logger<0.182.0>:couch_log:info:41]Query-Volume
+---
+[couchdb:info,2020-04-02T20:11:12.412+05:30,couchdb_ns_1@cb.local:cb_couch_sup<0.132.0>:couch_log:info:41]Apache CouchDB has started on http://0.0.0.0:8092/
+[couchdb:info,2020-04-02T20:12:12.345+05:30,couchdb_ns_1@cb.local:couch_query_logger<0.182.0>:couch_log:info:41]Query-Volume
+---
+[couchdb:info,2020-04-02T20:13:12.347+05:30,couchdb_ns_1@cb.local:couch_query_logger<0.182.0>:couch_log:info:41]Query-Volume
+---
+[couchdb:info,2020-04-02T20:14:12.347+05:30,couchdb_ns_1@cb.local:couch_query_logger<0.182.0>:couch_log:info:41]Query-Volume
+---
+[couchdb:info,2020-04-02T20:15:15.210+05:30,couchdb_ns_1@cb.local:cb_couch_sup<0.132.0>:couch_log:info:41]Apache CouchDB has started on http://0.0.0.0:8092/
+[couchdb:info,2020-04-02T20:17:29.426+05:30,couchdb_ns_1@cb.local:cb_couch_sup<0.132.0>:couch_log:info:41]Apache CouchDB has started on http://0.0.0.0:8092/
+[couchdb:info,2020-04-02T20:18:29.350+05:30,couchdb_ns_1@cb.local:couch_query_logger<0.182.0>:couch_log:info:41]Query-Volume
+---

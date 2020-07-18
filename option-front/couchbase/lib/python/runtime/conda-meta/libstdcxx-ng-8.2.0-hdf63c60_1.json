@@ -1,0 +1,25 @@
+{
+  "arch": "x86_64",
+  "build": "hdf63c60_1",
+  "build_number": 1,
+  "depends": [],
+  "files": [
+    "lib/libstdc++.so",
+    "lib/libstdc++.so.6",
+    "lib/libstdc++.so.6.0.25",
+    "share/licenses/libstdc++/RUNTIME.LIBRARY.EXCEPTION",
+    "x86_64-conda_cos6-linux-gnu/sysroot/lib/libstdc++.so",
+    "x86_64-conda_cos6-linux-gnu/sysroot/lib/libstdc++.so.6",
+    "x86_64-conda_cos6-linux-gnu/sysroot/lib/libstdc++.so.6.0.25"
+  ],
+  "installed_by": "cbpy-installer",
+  "license": "GPL3 with runtime exception",
+  "link": null,
+  "md5": "16e7bf6ac5207cc989841be16938a3cf",
+  "name": "libstdcxx-ng",
+  "platform": "linux",
+  "subdir": "linux-64",
+  "timestamp": 1534516131602,
+  "url": "http://repo.anaconda.com/pkgs/main/linux-64/libstdcxx-ng-8.2.0-hdf63c60_1.tar.bz2",
+  "version": "8.2.0"
+}

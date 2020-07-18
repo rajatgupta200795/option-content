@@ -1,0 +1,59 @@
+<!--This dialog will be used for delete and deploy-->
+<div class="dialog-small">
+  <div class="panel-header">
+    <h2>Confirm {{actionTitle}} Function</h2>
+  </div>
+  <div class="panel-content">
+    <!--Delete action-->
+    <span ng-if="action==='delete'">
+      <div class="row flex-left">
+        <span class="icon fa-warning fa-2x red-3"></span>
+        <p>
+          Warning: Deleting will remove the function and related artifacts.
+          <br>Delete this function?
+        </p>
+      </div>
+    </span>
+    <!--Deploy action-->
+    <div ng-if="action==='deploy'">
+      <p>
+        Execute the new function for all invocations henceforth.
+      </p>
+      <div class="formrow">
+          Feed boundary:<br>
+        <select ng-model="settings.changeFeedBoundary">
+          <option value="everything">Everything</option>
+          <option value="from_now">From now</option>
+        </select>
+      </div>
+    </div>
+    <!--Pause action-->
+    <div ng-if="action==='pause'">
+      <p>
+        Pause execution of running function.
+      </p>
+    </div>
+    <!--Resume action-->
+    <div ng-if="action==='resume'">
+      <p>
+        Resume execution of paused function.
+      </p>
+    </div>
+    <!--Undeploy action-->
+    <div ng-if="action==='undeploy'">
+      <p>
+        Stop executing this function for any invocations henceforth.
+      </p>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <a ng-click="$dismiss('cancel')">Cancel</a>
+    <button ng-click="$close('ok')">
+      <span ng-if="action==='delete'">Delete Function</span>
+      <span ng-if="action==='deploy'">Deploy Function</span>
+      <span ng-if="action==='pause'">Pause Function</span>
+      <span ng-if="action==='resume'">Resume Function</span>
+      <span ng-if="action==='undeploy'">Undeploy Function</span>
+    </button>
+  </div>
+</div>

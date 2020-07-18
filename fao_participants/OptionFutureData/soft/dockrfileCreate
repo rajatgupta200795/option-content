@@ -1,0 +1,15 @@
+FROM python:3
+RUN python --version
+RUN apt-get update
+WORKDIR /app
+ADD req.txt req.txt
+RUN pip3 install -r req.txt
+RUN mkdir -p /root/.config/matplotlib
+RUN echo "backend : Agg" > /root/.config/matplotlib/matplotlibrc
+RUN apt install nano
+ADD CreateFaoGraph.py CreateFaoGraph.py
+#ADD data.xlsx data.xlsx
+CMD ls
+RUN pip3 install -r req.txt
+ENTRYPOINT ["python3", "/app/CreateFaoGraph.py"]
+CMD ls

@@ -1,0 +1,481 @@
+'\" t
+.\"     Title: cbbackupmgr-backup
+.\"    Author: Couchbase
+.\" Generator: Asciidoctor 2.0.10
+.\"      Date: 2019-10-11
+.\"    Manual: Backup Manual
+.\"    Source: Backup 1.0.0
+.\"  Language: English
+.\"
+.TH "CBBACKUPMGR\-BACKUP" "1" "2019-10-11" "Backup 1.0.0" "Backup Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cbbackupmgr\-backup \- Backs up data from a Couchbase cluster
+.SH "SYNOPSIS"
+.sp
+.sp
+.nf
+cbbackupmgr backup [\-\-archive <archive_dir>] [\-\-repo <repo_name>]
+                   [\-\-cluster <url>] [\-\-username <username>]
+                   [\-\-password <password>] [\-\-resume] [\-\-purge]
+                   [\-\-thread <num>] [\-\-cacert <file>] [\-\-no\-ssl\-verify]
+                   [\-\-value\-compression <type>] [\-\-no\-progress\-bar]
+                   [\-\-skip\-last\-compaction] [\-\-consistency\-check <window>]
+.fi
+.br
+.SH "DESCRIPTION"
+.sp
+Backs up a Couchbase cluster into the backup repository specified. Before
+running the backup command, a backup repository must be created. See
+\fBcbbackupmgr\-config\fP(1) for more details on creating a backup
+repository. The backup command uses information from the previous backup taken
+in order to backup all new data on a Couchbase cluster. If no previous backup
+exists then all data on the cluster is backed up. The backup is taken based on
+the backup repository\(cqs backup configuration. Each backup will create a new
+folder in the backup repository. This folder will contain all data from the
+backup and is named to reflect the time that the backup was started.
+.sp
+As the backup runs, it tracks its progress which allows failed backups to be
+resumed from the point where they left off. If a backup fails before it is
+complete it is considered a partial backup. To attempt to complete the backup
+process, the backup may be resumed with the \-\-resume flag. It may also be
+deleted and resumed from the previous successful backup with the \-\-purge flag.
+.sp
+The backup command is capable of backing up data when there is a cluster
+rebalance operation in progress. During a rebalance, the backup command will
+track data as it moves around the cluster and complete the backup. However users
+should use caution when running backups during a rebalance since both the
+rebalance and backup operations can be resource intensive and may cause
+temporary performance degradations in other parts of the cluster. See the
+\-\-threads flag for information on how to lower the impact of the backup command
+on your Couchbase cluster.
+.sp
+The backup command is also capable of backing up data when there are server
+failures in the target backup cluster. When a server failure occurs the backup
+command will wait for 180 seconds for the failed server to come back online or
+for the failed server to be failed over and removed from the cluster. If 180
+seconds passes without the failed server coming back online or being failed over
+then the backup command will mark the data on that node as failed and attempt to
+back up the rest of the data from the cluster. The backup will be marked as a
+partial backup in the backup archive and will need to be either resumed or
+purged when the backup command is invoked again.
+.SH "OPTIONS"
+.sp
+Below are a list of required and optional parameters for the backup command.
+.SS "Required"
+.sp
+\-a,\-\-archive <archive_dir>
+.RS 4
+The location of the backup archive directory.
+.RE
+.sp
+\-r,\-\-repo <repo_name>
+.RS 4
+The name of the backup repository to backup data into.
+.RE
+.sp
+\-c,\-\-cluster <hostname>
+.RS 4
+The hostname of one of the nodes in the cluster to back up. See the
+Host Formats section below for hostname specification details.
+.RE
+.sp
+\-u,\-\-username <username>
+.RS 4
+The username for cluster authentication. The user must have the appropriate
+privileges to take a backup.
+.RE
+.sp
+\-p,\-\-password <password>
+.RS 4
+The password for cluster authentication. The user must have the appropriate
+privileges to take a backup. If not password is supplied to this option then
+you will be prompted to enter your password.
+.RE
+.SS "Optional"
+.sp
+\-\-resume
+.RS 4
+If the previous backup did not complete successfully it can be resumed from
+where it left off by specifying this flag. Note that the resume and purge
+flags may not be specified at the same time.
+.RE
+.sp
+\-\-purge
+.RS 4
+If the previous backup did not complete successfully the partial backup will
+be removed and restarted from the point of the previous successful backup by
+specifying this flag. Note that the purge and resume flags may not be
+specified at the same time.
+.RE
+.sp
+\-\-no\-ssl\-verify
+.RS 4
+Skips the SSL verification phase. Specifying this flag will allow a
+connection using SSL encryption, but will not verify the identity of the
+server you connect to. You are vulnerable to a man\-in\-the\-middle attack if
+you use this flag. Either this flag or the \-\-cacert flag must be specified
+when using an SSL encrypted connection.
+.RE
+.sp
+\-\-cacert <cert_path>
+.RS 4
+Specifies a CA certificate that will be used to verify the identity of the
+server being connecting to. Either this flag or the \-\-no\-ssl\-verify flag
+must be specified when using an SSL encrypted connection.
+.RE
+.sp
+\-\-value\-compression <compression_policy>
+.RS 4
+Specifies a compression policy for backed up values. When Couchbase sends
+data to the backup client the data stream may contain all compressed values,
+all uncompressed values, or a mix of compressed and uncompressed values. To
+backup all data in the same form that the backup client receives it you can
+specify "unchanged". If you wish for all values to be uncompressed then you
+can specify "uncompressed". This policy will however uncompress any
+compressed values received from Couchbase and may increase the backup file
+size. To compress all values you can specify "compressed". This will
+compress any uncompressed values before writing them to disk. The default
+value for this option is "compressed".
+.RE
+.sp
+\-t,\-\-threads <num>
+.RS 4
+Specifies the number of concurrent clients to use when taking a backup.
+Fewer clients means backups will take longer, but there will be less cluster
+resources used to complete the backup. More clients means faster backups,
+but at the cost of more cluster resource usage. This parameter defaults to 1
+if it is not specified and it is recommended that this parameter is not set
+to be higher than the number of CPUs on the machine where the backup is
+taking place.
+.RE
+.sp
+\-\-no\-progress\-bar
+.RS 4
+By default, a progress bar is printed to stdout so that the user can see how
+long the backup is expected to take, the amount of data that is being
+transferred per second, and the amount of data that has been backed up.
+Specifying this flag disables the progress bar and is useful when running
+automated jobs.
+.RE
+.sp
+\-\-consistency\-check <window>
+.RS 4
+When a window larger than 1 is provided it will enable the
+consistency checker. This will show a warning if the backup
+consistency window is larger than the one provided in seconds.
+This feature is developer preview. See DISCUSSION for more information.
+.RE
+.SH "HOST FORMATS"
+.sp
+When specifying a host for the couchbase\-cli command the following formats are expected:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRcouchbase://<addr>\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CR<addr>:<port>\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRhttp://<addr>:<port>\fP
+.RE
+.sp
+It is recommended to use the couchbase://<addr> format for standard
+installations. The other two formats allow an option to take a port number which
+is needed for non\-default installations where the admin port has been set up on
+a port other that 8091.
+.SH "EXAMPLES"
+.sp
+The following command is used to take a backup of a Couchbase cluster.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr config \-\-archive /data/backups \-\-repo example
+$ cbbackupmgr backup \-a /data/backups \-r example \(rs
+ \-c couchbase://172.23.10.5 \-u Administrator \-p password
+.fi
+.if n .RE
+.sp
+Once the backup has finished there will be a new directory in the specified
+backup repository containing the backed up data. You can see this new directory
+using the \fBcbbackupmgr\-list\fP(1) command.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr list \-\-archive /data/backups
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+Size      Items          Name
+91.57MB   \-              /
+91.57MB   \-              + example
+91.57MB   \-                  + 2016\-02\-11T16_35_35.796709869\-08_00
+91.57MB   \-                      + default
+322B      0                          bucket\-config.json
+91.56MB   31569                      + data
+91.56MB   31569                          shard_0.fdb
+2B        0                          full\-text.json
+10.07KB   8                          gsi.json
+1.72KB    1                          views.json
+.fi
+.if n .RE
+.sp
+If a backup fails then it is considered a partial backup and the backup client
+will not be able to back up any new data until the user decides whether to
+resume or purge the partial backup. This decision is made by specifying either
+the \-\-resume or the \-\-purge flag on the next invocation of the backup command.
+Below is an example of how this process works if the user wants to resume a
+backup.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr config \-a /data/backups \-r example
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr backup \-a /data/backups \-r example \(rs
+ \-c 172.23.10.5 \-u Administrator \-p password
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+Error backing up cluster: Not all data was backed up due to connectivity
+issues. Check to make sure there were no server side failures during
+backup. See backup logs for more details on what wasn\(aqt backed up.
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr backup \-a /data/backups \-r example \(rs
+ \-c 172.23.10.5 \-u Administrator \-p password
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+Error backing up cluster: Partial backup error 2016\-02\-11T17:00:19.594970735\-08:00
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr backup \-a /data/backups \-r example \-c 172.23.10.5 \(rs
+ \-u Administrator \-p password \-\-resume
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+Backup successfully completed
+.fi
+.if n .RE
+.sp
+To backup a cluster with a different amount of concurrent clients and decrease
+the backup time you can specify the \-\-threads flag. Remember that specifying a
+higher number of concurrent clients increases the amount of resources the
+cluster uses to complete the backup. Below is an example of using 16 concurrent
+clients.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr config \-a /data/backups \-r example
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr backup \-a /data/backups \-r example \(rs
+ \-c 172.23.10.5 \-u Administrator \-p password \-t 16
+.fi
+.if n .RE
+.SH "DISCUSSION"
+.sp
+This command always backs up data incrementally. By using the vbucket sequence
+number that is associated with each item, the backup command is able to examine
+previous backups in order to determine where the last backup finished.
+.sp
+When backing up a cluster, data for each bucket is backed up in the following
+order:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRBucket Settings\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRView Definitions\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRGlobal Secondary Index (GSI) Definitions\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRFull\-Text Index Definitions\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRKey\-Value Data\fP
+.RE
+.sp
+The backup command will store everything that is persisted to disk on the
+Couchbase Server nodes at the time the backup is started. Couchbase server is
+consistent at a vBucket level and not across a whole bucket. The tool tries
+to provide a strong consistency window by opening all connection to every
+node at the same time. Being a distributed system there are times when this is
+not possible such as when the cluster is under\-resourced or there are network
+issues. These may affect the consistency of the backup across
+the vBuckets. \f(CRcbbackupmgr backup\fP provides a developer preview feature that
+checks that the backup is inside a consistency window.
+.SH "ENVIRONMENT AND CONFIGURATION VARIABLES"
+.sp
+CB_CLUSTER
+.RS 4
+Specifies the hostname of the Couchbase cluster to connect to. If the
+hostname is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_USERNAME
+.RS 4
+Specifies the username for authentication to a Couchbase cluster. If the
+username is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_PASSWORD
+.RS 4
+Specifies the password for authentication to a Couchbase cluster. If the
+password is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_ARCHIVE_PATH
+.RS 4
+Specifies the path to the backup archive. If the archive path is supplied as
+a command line argument then this value is overridden.
+.RE
+.SH "FILES"
+.sp
+restrictions.json
+.RS 4
+Keeps a list of restrictions used to ensure data is not restored to the
+place.
+.RE
+.sp
+bucket\-config.json
+.RS 4
+Stores the bucket configuration settings for a bucket.
+.RE
+.sp
+views.json
+.RS 4
+Stores the view definitions for a bucket.
+.RE
+.sp
+gsi.json
+.RS 4
+Stores the global secondary index (GSI) definitions for a bucket.
+.RE
+.sp
+full\-text.json
+.RS 4
+Stores the full\-text index definitions for a bucket.
+.RE
+.sp
+shard\-*.fdb
+.RS 4
+Stores the key\-value data for a bucket bucket.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBcbbackupmgr\-config\fP(1),
+\fBcbbackupmgr\-list\fP(1),
+\fBcbbackupmgr\-strategies\fP(1)
+.SH "CBBACKUPMGR"
+.sp
+Part of the \fBcbbackupmgr\fP(1) suite
+.SH "AUTHOR"
+.sp
+Couchbase

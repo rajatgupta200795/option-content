@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Script to start/stop/enable Couchbase Server on Linux distributions
+# which are normally systemd-enabled. Detects whether Couchbase is
+# being installed inside a Docker container (where systemd generally
+# does not work correctly) and starts the server directly in that case.
+
+in-container() {
+    # Best heuristic to identify whether we're in a docker container or not
+    if [ ! -e /proc/1/cgroup ]; then
+        return 1
+    fi
+    # Regexps borrowed from Jenkins' docker-workflow-plugin:
+    # https://github.com/jenkinsci/docker-workflow-plugin/blob/cf80d9e2f628392b79777abfb90371cbb5353e5c/src/main/java/org/jenkinsci/plugins/docker/workflow/client/ControlGroup.java#L53
+    [[ $(cat /proc/1/cgroup) =~ (/docker/|/ecs/|/docker-|/kubepods/) ]]
+    return $?
+}
+
+case "$1" in
+    daemon-reload)
+        if in-container; then
+            # No concept of daemon-reload for containers
+            echo > /dev/null
+        else
+            # MB-28265: Make sure systemd is up-to-date
+            systemctl daemon-reload
+        fi
+        ;;
+    start)
+        if in-container; then
+            ( /opt/couchbase/bin/couchbase-server -- -noinput > /dev/null 2>&1 ) &
+            disown %
+        else
+            systemctl unmask couchbase-server
+            systemctl start couchbase-server
+        fi
+        ;;
+    stop)
+        if in-container; then
+            if [ -e /opt/couchbase/bin/couchbase-server ]; then
+                /opt/couchbase/bin/couchbase-server -k || true
+            fi
+        else
+            systemctl stop couchbase-server || true
+        fi
+        ;;
+    enable)
+        if in-container; then
+            # No concept of enable for containers
+            echo > /dev/null
+        else
+            systemctl unmask couchbase-server
+            systemctl enable couchbase-server
+        fi
+        ;;
+esac

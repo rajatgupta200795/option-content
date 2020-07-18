@@ -1,0 +1,496 @@
+'\" t
+.\"     Title: cbbackupmgr-restore
+.\"    Author: Couchbase
+.\" Generator: Asciidoctor 1.5.8
+.\"      Date: 2019-03-06
+.\"    Manual: Backup Manual
+.\"    Source: Backup 1.0.0
+.\"  Language: English
+.\"
+.TH "CBBACKUPMGR\-RESTORE" "1" "2019-03-06" "Backup 1.0.0" "Backup Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cbbackupmgr\-restore \- Restores data from the backup archive to a Couchbase cluster
+.SH "SYNOPSIS"
+.sp
+.nf
+cbbackupmgr restore [\-\-archive <archive_dir>] [\-\-repo <repo_name>]
+                    [\-\-cluster <host>] [\-\-username <username>]
+                    [\-\-password <password>] [\-\-start <backup>] [\-\-end <backup>]
+                    [\-\-exclude\-buckets <bucket_list>]
+                    [\-\-include\-buckets <bucket_list>][\-\-map\-buckets <list>]
+                    [\-\-disable\-bucket\-config] [\-\-disable\-analytics]
+                    [\-\-disable\-views] [\-\-disable\-gsi\-indexes]
+                    [\-\-disable\-ft\-indexes] [\-\-disable\-ft\-alias]
+                    [\-\-disable\-data] [\-\-disable\-eventing] [\-\-replace\-ttl <type>]
+                    [\-\-replace\-ttl\-with <timestamp>] [\-\-force\-updates]
+                    [\-\-threads <integer>] [\-\-vbucket\-filter <integer_list>]
+                    [\-\-no\-progress\-bar] [\-\-auto\-create\-buckets]
+== DESCRIPTION
+.fi
+.br
+.sp
+Restores data from the backup archive to a target Couchbase cluster. By default
+all data, index definitions, view definitions, full\-text index definitions and
+bucket configuration data are restored to the cluster unless specified otherwise
+in the repos backup config or though command line parameters when running the
+restore command. For example, if you changed bucket configuration settings since
+your last backup then restoring a previous backup will by default overwrite
+these settings unless you explicitly tell cbbackupmgr not to restore the bucket
+settings using the \-\-disable\-bucket\-config flag.
+.sp
+The restore command is capable of restoring a single backup or a range of
+backups. When restoring a single backup, all data from that backup is restored.
+If a range of backups is restored, then cbbackupmgr will take into account
+any failovers that may have occurred in between the time that the backups were
+originally taken. If a failover did occur in between the backups, and the backup
+archive contains data that no longer exists in the cluster, then the data that
+no longer exists will be skipped during the restore. If no failovers occurred in
+between backups then restoring a range of backups will restore all data from
+each backup. If all data must be restored regardless of whether a failover
+occurred in between the original backups, then data should be restored one
+backup at a time.
+.sp
+The restore command is guaranteed to work during rebalances and failovers. If a
+rebalance is taking place, cbbackupmgr will track the movement of vbuckets
+around a Couchbase cluster and ensure that data is restored to the appropriate
+node. If a failover occurs during the restore then the client will wait 180
+seconds for the failed node to be removed from the cluster. If the failed node
+is not removed in 180 seconds then the restore will fail, but if the failed node
+is removed before the timeout then data will continue to be restored.
+.sp
+Note that if you are restoring indexes then it is highly likely that you will
+need to take some manual steps in order to properly restore them. This is
+because by default indexes will only be built if they are restored to the exact
+same index node that they were backed up from. If the index node they were
+backed up from does not exist then the indexes will be restored in round\-robin
+fashion among the current indexer nodes. These indexes will be created, but not
+built and will required the administrator to manually build them. We do this
+because we cannot know the optimal index topology ahead of time. By not building
+the indexes the administrator can move each index between nodes and build them
+when they deem that the index topology is optimal.
+.SH "OPTIONS"
+.sp
+Below is a list of required and optional parameters for the restore command.
+.SS "Required"
+.sp
+\-a,\-\-archive <archive_dir>
+.RS 4
+The directory containing the backup repository to restore data from.
+.RE
+.sp
+\-r,\-\-repo <repo_name>
+.RS 4
+The name of the backup repository to restore data from.
+.RE
+.sp
+\-c,\-\-cluster <hostname>
+.RS 4
+The hostname of one of the nodes in the cluster to restore data to. See the
+Host Formats section below for hostname specification details.
+.RE
+.sp
+\-u,\-\-username <username>
+.RS 4
+The username for cluster authentication. The user must have the appropriate
+privileges to take a backup.
+.RE
+.sp
+\-p,\-\-password <password>
+.RS 4
+The password for cluster authentication. The user must have the appropriate
+privileges to take a backup. If not password is supplied to this option then
+you will be prompted to enter your password.
+.RE
+.SS "Optional"
+.sp
+\-\-start <backup>
+.RS 4
+The name of the  first backup in  the backup repository to restore or an index
+value which references an incremental backup. Valid index values are any
+positive integer, "oldest", and "latest". If a positive integer is used then
+it should reference the index of the incremental backup starting from the
+oldest to the most recent backup. For example, "1" corresponds to the oldest
+backup, "2" corresponds to the second oldest backup, and so on. Specifying
+"oldest" means that the index of the oldest backup should be used and
+specifying "latest" means the index of the most recent backup should be
+used. If this flag is not specified then the restore will start with the
+oldest backup in the backup repository.
+.RE
+.sp
+\-\-end <backup>
+.RS 4
+The name of the last backup in the backup repository to restore or an index
+value which references an incremental backup. Valid index values are any
+positive integer, "oldest", and "latest". If a positive integer is used then
+it should reference the index of the incremental backup starting from the
+oldest to the most recent backup. For example, "1" corresponds to the oldest
+backup, "2" corresponds to the second oldest backup, and so on. Specifying
+"oldest" means that the index of the oldest backup should be used and
+specifying "latest" means the index of the most recent backup should be
+used. If this flag is not specified then the restore will end with the most
+recent backup in the backup repository.
+.RE
+.sp
+\-\-exclude\-buckets <bucket_list>
+.RS 4
+Restores all buckets in a backup that are not specified in <bucket_list>.
+This flag cannot be specified at the same time as the \-\-include\-buckets
+flag. Takes a comma separated list of bucket names.
+.RE
+.sp
+\-\-include\-buckets <bucket_list>
+.RS 4
+Restores only buckets in a backup that are specified in <bucket\-list>. This
+flag cannot be specified at the same time as the \-\-exclude\-buckets flag.
+Takes a comma separated list of bucket names.
+.RE
+.sp
+\-\-filter\-keys
+.RS 4
+Only restore data where the key matches a particular regular expression.
+.RE
+.sp
+\-\-filter\-values
+.RS 4
+Only restore data where the value matches a particular regular expression.
+.RE
+.sp
+\-\-enable\-bucket\-config
+.RS 4
+Enables restoring the bucket configuration.
+.RE
+.sp
+\-\-disable\-views
+.RS 4
+Skips restoring view definitions for all buckets.
+.RE
+.sp
+\-\-disable\-gsi\-indexes
+.RS 4
+Skips restoring gsi index definitions for all buckets.
+.RE
+.sp
+\-\-disable\-ft\-indexes
+.RS 4
+Skips restoring full\-text index definitions for all buckets.
+.RE
+.sp
+\-\-disable\-ft\-alias
+.RS 4
+Skips restoring full\-text alias definitions.
+.RE
+.sp
+\-\-disable\-data
+.RS 4
+Skips restoring all key\-value data for all buckets.
+.RE
+.sp
+\-\-disable\-analytics
+.RS 4
+Skips restoring analytics data.
+.RE
+.sp
+\-\-disable\-eventing
+.RS 4
+Skips restoring the eventing service metadata.
+.RE
+.sp
+\-\-force\-updates
+.RS 4
+Forces data in the Couchbase cluster to be overwritten even if the data in
+the cluster is newer. By default updates are not forced and all updates use
+Couchbase\(cqs conflict resolution mechanism to ensure that if newer data
+exists on the cluster that is not overwritten by older restore data.
+.RE
+.sp
+\-\-map\-buckets <bucket_mapping>
+.RS 4
+Specified when you want to restore a backup to a destination bucket that has
+a different name than the bucket that was originally backed up. This
+parameter takes a list of mappings since multiple buckets may be restored at
+the same time. Each bucket mapping is separated by an "=" and if multiple
+bucket mappings are specified then they should be comma separated. If we
+have two buckets, bucket\-1 and bucket\-2, and we want to restore them to
+renamed\-1 and renamed\-2 then we would denote the mapping as
+"bucket\-1=renamed\-1,bucket\-2=renamed\-2". This option will only restore data
+to the Data service and will not restore the metadata for any other service.
+.RE
+.sp
+\-\-replace\-ttl <type>
+.RS 4
+Sets a new expiration (time\-to\-live) value for the specified keys. This
+parameter can either be set to "all", "expired", or "none" and should be
+used along with the \-\-replace\-ttl\-with flag. If "all" is specified then the
+TTL values for all keys are replaced with the value of the
+\-\-replace\-ttl\-with flag. If "expired" is set then only keys which have
+already expired will have the TTL\(cqs replaced. If "none" is specified then
+the TTL will not be changed for any keys, this is also the default
+behaviour when the flag is not set.
+.RE
+.sp
+\-\-replace\-ttl\-with <timestamp>
+.RS 4
+Updates the expiration for the keys specified by the \-\-replace\-ttl parameter.
+The parameter has to be set when \-\-replace\-ttl is set to "all" or "none"
+There are two options, RFC3339 time stamp format (2006\-01\-02T15:04:05\-07:00)
+or "0". When "0" is specified the expiration will be removed. Please note
+that the RFC3339 value is converted to a Unix time stamp on the cbbackupmgr
+client. It is important that the time on both the client and the Couchbase
+Server are the same to ensure expiry happens correctly.
+.RE
+.sp
+\-\-vbucket\-filter <list>
+.RS 4
+Specifies a list of VBuckets that should be restored. VBuckets are specified
+as a comma separated list of integers. If this parameter is not set then all
+vBuckets which were backed up are restored.
+.RE
+.sp
+\-\-no\-ssl\-verify
+.RS 4
+Skips the SSL verification phase. Specifying this flag will allow a
+connection using SSL encryption, but will not verify the identity of the
+server you connect to. You are vulnerable to a man\-in\-the\-middle attack if
+you use this flag. Either this flag or the \-\-cacert flag must be specified
+when using an SSL encrypted connection.
+.RE
+.sp
+\-\-cacert <cert_path>
+.RS 4
+Specifies a CA certificate that will be used to verify the identity of the
+server being connecting to. Either this flag or the \-\-no\-ssl\-verify flag
+must be specified when using an SSL encrypted connection.
+.RE
+.sp
+\-t,\-\-threads <num>
+.RS 4
+Specifies the number of concurrent clients to use when restoring data. Fewer
+clients means restores will take longer, but there will be less cluster
+resources used to complete the restore. More clients means faster restores,
+but at the cost of more cluster resource usage. This parameter defaults to 1
+if it is not specified and it is recommended that this parameter is not set
+to be higher than the number of CPUs on the machine where the restore is
+taking place.
+.RE
+.sp
+\-\-no\-progress\-bar
+.RS 4
+By default, a progress bar is printed to stdout so that the user can see how
+long the restore is expected to take, the amount of data that is being
+transferred per second, and the amount of data that has been restored.
+Specifying this flag disables the progress bar and is useful when running
+automated jobs.
+.RE
+.sp
+\-\-auto\-create\-buckets
+.RS 4
+It will create the destination buckets if not present in the server.
+.RE
+.SH "HOST FORMATS"
+.sp
+When specifying a host for the couchbase\-cli command the following formats are expected:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRcouchbase://<addr>\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CR<addr>:<port>\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRhttp://<addr>:<port>\fP
+.RE
+.sp
+It is recommended to use the couchbase://<addr> format for standard
+installations. The other two formats allow an option to take a port number which
+is needed for non\-default installations where the admin port has been set up on
+a port other that 8091.
+.SH "EXAMPLES"
+.sp
+The restore command can be used to restore a single backup or range of backups
+in a backup repository. In the examples below, we will look a few different ways
+to restore data from a backup repository. All examples will assume that the
+backup archive is located at /data/backups and that all backups are located in
+the "example" backup repository.
+.sp
+The first thing to do when getting ready to restore data is to decide which
+backups to restore. The easiest way to do this is to use the list command to see
+which backups are available to restore.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr list \-\-archive /data/backups \-\-repo example
+.fi
+.if n .RE
+.sp
+.if n .RS 4
+.nf
+Size      Items          Name
+2.24GB    \-              + example
+1.11GB    \-                  + 2016\-03\-08T14_41_10.757145596\-08_00
+1.11GB    \-                      + default
+295B      0                          bucket\-config.json
+1.11GB    983797                     + data
+1.11GB    983797                         shard_0.fdb
+2B        0                          full\-text.json
+128B      0                          gsi.json
+2B        0                          views.json
+430.52MB  \-                  + 2016\-03\-09T14_42_24.024494032\-08_00
+430.52MB  \-                      + default
+295B      0                          bucket\-config.json
+430.52MB  334400                     + data
+430.52MB  334400                         shard_0.fdb
+2B        0                          full\-text.json
+128B      0                          gsi.json
+2B        0                          views.json
+728.72MB  \-                  + 2016\-03\-10T14_42_58.743250296\-08_00
+728.72MB  \-                      + default
+295B      0                          bucket\-config.json
+728.72MB  607500                     + data
+728.72MB  607500                         shard_0.fdb
+2B        0                          full\-text.json
+128B      0                          gsi.json
+2B        0                          views.json
+.fi
+.if n .RE
+.sp
+From listing the backup repository we can see we have three backups that we can
+restore in the "examples" backup repository. If we just want to restore one of
+them we set the \-\-start and \-\-end flags in the restore command to the same
+backup name and specify the cluster that we want to restore the data to. In the
+example below we will restore only the oldest backup.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr restore \-a /data/backups \-r example \(rs
+ \-c couchbase://127.0.0.1 \-u Administrator \-p password \(rs
+ \-\-start 2016\-03\-08T14_41_10.757145596\-08_00 \(rs
+ \-\-end 2016\-03\-08T14_41_10.757145596\-08_00
+.fi
+.if n .RE
+.sp
+If we want to restore only the two most recent backups then we specify the
+\-\-start and \-\-end flags with different backup names in order to specify the
+range we want to restore.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr restore \-a /data/backups \-r example \(rs
+ \-c couchbase://127.0.0.1 \-u Administrator \-p password \(rs
+ \-\-start 2016\-03\-09T14_42_24.024494032\-08_00 \(rs
+ \-\-end 2016\-03\-10T14_42_58.743250296\-08_00
+.fi
+.if n .RE
+.sp
+If we want to restore all of the backups in the "examples" directory then we can
+omit the \-\-start and \-\-end flags since their default values are the oldest and
+most recent backup in the backup repository.
+.sp
+.if n .RS 4
+.nf
+$ cbbackupmgr restore \-a /data/backups \-r example \(rs
+ \-c couchbase://127.0.0.1 \-u Administrator \-p password
+.fi
+.if n .RE
+.SH "DISCUSSION"
+.sp
+The restore command works by replaying the data recorded in backup files. During
+a restore each key\-value pair backed up by cbbackupmgr will be sent to the
+cluster as either a "set" or "delete" operation. The restore command replays
+data from each file in order of backup time to guarantee that older backup data
+does not overwrite newer backup data. The restore command uses Couchbase\(cqs
+conflict resolution mechanism by default to ensure this behavior. The conflict
+resolution mechanism can be disable by specifying the \-\-force\-updates flag when
+executing a restore.
+.sp
+Starting in Couchbase 4.6 each bucket can have different conflict resolution
+mechanisms. cbbackupmgr will backup all meta data used for conflict resolution,
+but since each conflict resolution mechanism is different cbbackupmgr will
+prevent restores to a bucket when the source and destination conflict resolution
+methods differ. This is done because by default cbbackupmgr will use the
+conflict resolution mechanism of the destination bucket to ensure an older value
+does not overwrite a newer value. If you want to restore a backup to a bucket
+with a different conflict resolution type you can do by using the
+\-\-force\-updates flag. This is allowed because forcing updates means that
+cbbackupmgr will skip doing conflict resolution on the destination bucket.
+.sp
+Also keep in mind that unlike backups, restores cannot be resumed if they fail.
+.SH "ENVIRONMENT AND CONFIGURATION VARIABLES"
+.sp
+CB_CLUSTER
+.RS 4
+Specifies the hostname of the Couchbase cluster to connect to. If the
+hostname is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_USERNAME
+.RS 4
+Specifies the username for authentication to a Couchbase cluster. If the
+username is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_PASSWORD
+.RS 4
+Specifies the password for authentication to a Couchbase cluster. If the
+password is supplied as a command line argument then this value is
+overridden.
+.RE
+.sp
+CB_ARCHIVE_PATH
+.RS 4
+Specifies the path to the backup archive. If the archive path is supplied as
+a command line argument then this value is overridden.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBcbbackupmgr\-backup\fP(1),
+\fBcbbackupmgr\-list\fP(1)
+.SH "CBBACKUPMGR"
+.sp
+Part of the \fBcbbackupmgr\fP(1) suite
+.SH "AUTHOR"
+.sp
+Couchbase

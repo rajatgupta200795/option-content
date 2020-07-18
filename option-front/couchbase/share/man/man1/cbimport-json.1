@@ -1,0 +1,458 @@
+'\" t
+.\"     Title: cbimport-json
+.\"    Author: Couchbase
+.\" Generator: Asciidoctor 1.5.8
+.\"      Date: 2019-02-13
+.\"    Manual: Backup Manual
+.\"    Source: Backup 1.0.0
+.\"  Language: English
+.\"
+.TH "CBIMPORT\-JSON" "1" "2019-02-13" "Backup 1.0.0" "Backup Manual"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cbimport\-json \- Imports JSON data into Couchbase
+.SH "SYNOPSIS"
+.sp
+.nf
+cbimport json [\-\-cluster <url>] [\-\-bucket <bucket_name>] [\-\-dataset <path>]
+              [\-\-format <data_format>][\-\-username <username>] [\-\-password <password>]
+              [\-\-generate\-key <key_expr>][\-\-cacert <path>][\-\-no\-ssl\-verify]
+              [\-\-threads <num>] [\-\-error\-log <path>][\-\-log\-file <path>] [\-\-verbose]
+              [\-\-ignore\-field] [\-\-field\-delimiter <char>] [\-\-generator\-delimiter <char>]
+.fi
+.br
+.SH "DESCRIPTION"
+.sp
+Imports JSON data into Couchbase. The cbimport command supports files that have
+a JSON docment on each line, files that contain a JSON list where each element
+is a document, and the Couchbase Samples format. The file format can be
+specified with the \-\-format flag. See the DATASET FORMATS section below for more
+details on the supported file formats.
+.sp
+The cbimport command also supports custom key\-generation for each document in
+the imported file. Key generation is done with a combination of pre\-existing
+fields in a document and custom generator functions supplied by cbimport. See
+the KEY GENERATION section below for details about key generators.
+.SH "OPTIONS"
+.sp
+Below are a list of required and optional parameters for the cbimport command.
+.SS "Required"
+.sp
+\-c,\-\-cluster <url>
+.RS 4
+The hostname of a node in the cluster to import data into. See the HOST
+FORMATS section below for details about hostname specification formats.
+.RE
+.sp
+\-u,\-\-username <username>
+.RS 4
+The username for cluster authentication. The user must have the appropriate
+privileges to write to the bucket in which data will be loaded to.
+.RE
+.sp
+\-p,\-\-password <password>
+.RS 4
+The password for cluster authentication. The user must have the appropriate
+privileges to write to the bucket in which data will be loaded to.
+Specifying this option without a value will allow the user to type a
+non\-echoed password to stdin.
+.RE
+.sp
+\-b,\-\-bucket <bucket_name>
+.RS 4
+The name of the bucket to import data into.
+.RE
+.sp
+\-d,\-\-dataset <uri>
+.RS 4
+The URI of the dataset to be loaded. cbimport supports loading data from a
+local files only. When importing data from a local file the path must be
+prefixed with file://.
+.RE
+.sp
+\-f,\-\-format <format>
+.RS 4
+The format of the dataset specified (lines, list, sample). See the DATASET
+FORMATS section below for more details on the formats supported by cbimport.
+.RE
+.SS "Optional"
+.sp
+\-g,\-\-generate\-key <key_expr>
+.RS 4
+Specifies a key expression used for generating a key for each document
+imported. This parameter is required for list and lines formats, but not for
+the sample format. See the KEY GENERATION section below for more information
+on specifying key generators. If the resulting key is not unique the values
+will be overridden, resulting in less documents than expected being imported.
+To ensure that the key is unique add #MONO_INCR# or #UUID# to the key
+generator expression.
+.RE
+.sp
+\-\-field\-delimiter <char>
+.RS 4
+Specifies the character to be used to denote field references in the key
+generator expression. It defaults to %. See the KEY GENERATION section.
+.RE
+.sp
+\-\-generator\-delimiter <char>
+.RS 4
+Specifies the character to be used to denote generator references in the key
+generator expression. It defaults to #. See the KEY GENERATION section.
+.RE
+.sp
+\-\-no\-ssl\-verify
+.RS 4
+Skips the SSL verification phase. Specifying this flag will allow a
+connection using SSL encryption, but will not verify the identity of the
+server you connect to. You are vulnerable to a man\-in\-the\-middle attack if
+you use this flag. Either this flag or the \-\-cacert flag must be specified
+when using an SSL encrypted connection.
+.RE
+.sp
+\-\-cacert <cert_path>
+.RS 4
+Specifies a CA certificate that will be used to verify the identity of the
+server being connecting to. Either this flag or the \-\-no\-ssl\-verify flag
+must be specified when using an SSL encrypted connection.
+.RE
+.sp
+\-\-limit\-docs <num>
+.RS 4
+Specifies that the utility should stop loading data after reading a certain
+amount of docs from the dataset. This option is useful when you have a large
+dataset and only want to partially load it.
+.RE
+.sp
+\-\-skip\-docs <num>
+.RS 4
+Specifies that the utility should skip some docs before we start importing
+data. If this flag is used together with the \-\-limit\-rows flag then we will
+import the number of rows specified by \-\-limit\-rows after we ave skipped the
+rows specified by \-\-skip\-rows.
+.RE
+.sp
+\-t,\-\-threads <num>
+.RS 4
+Specifies the number of concurrent clients to use when importing data. Fewer
+clients means imports will take longer, but there will be less cluster
+resources used to complete the import. More clients means faster imports,
+but at the cost of more cluster resource usage. This parameter defaults to 1
+if it is not specified and it is recommended that this parameter is not set
+to be higher than the number of CPUs on the machine where the import is
+taking place.
+.RE
+.sp
+\-e,\-\-errors\-log <path>
+.RS 4
+Specifies a log file where JSON documents that could not be loaded are
+written to. A document might not be loaded if a key could not be generated
+for the document or if the document is not valid JSON. The errors file is
+written in the "lines" format (one document per line).
+.RE
+.sp
+\-l,\-\-log\-file <path>
+.RS 4
+Specifies a log file for writing debugging information about cbimport
+execution.
+.RE
+.sp
+\-v,\-\-verbose
+.RS 4
+Specifies that logging should be sent to stdout. If this flag is specified
+along with the \-l/\-\-log\-file option then the verbose option is ignored.
+.RE
+.sp
+\-\-ignore\-field <field_ref>
+.RS 4
+Specify a field name that will be excluded from the imported document. The
+field reference syntax is the same as the one used in KEY EXPRESSIONS to
+refer to fields.
+.RE
+.SH "HOST FORMATS"
+.sp
+When specifying a host for the couchbase\-cli command the following formats are expected:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRcouchbase://<addr>\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CR<addr>:<port>\fP
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRhttp://<addr>:<port>\fP
+.RE
+.sp
+It is recommended to use the couchbase://<addr> format for standard
+installations. The other two formats allow an option to take a port number which
+is needed for non\-default installations where the admin port has been set up on
+a port other that 8091.
+.SH "DATASET FORMATS"
+.sp
+The cbimport command supports the formats listed below.
+.SS "LINES"
+.sp
+The lines format specifies a file that contains one JSON document on every line
+in the file. This format is specified by setting the \-\-format option to "lines".
+Below is an example of a file in lines format.
+.sp
+.if n .RS 4
+.nf
+{"key": "mykey1", "value": "myvalue1"}
+{"key": "mykey2", "value": "myvalue2"}
+{"key": "mykey3", "value": "myvalue3"}
+{"key": "mykey4", "value": "myvalue4"}
+.fi
+.if n .RE
+.SS "LIST"
+.sp
+The list format specifies a file which contains a JSON list where each element
+in the list is a JSON document. The file may only contain a single list, but the
+list may be specified over multiple lines. This format is specified by setting
+the \-\-format option to "list". Below is an example of a file in list format.
+.sp
+.if n .RS 4
+.nf
+[
+  {
+    "key": "mykey1",
+    "value": "myvalue1"
+  },
+  {"key": "mykey2", "value": "myvalue2"},
+  {"key": "mykey3", "value": "myvalue3"},
+  {"key": "mykey4", "value": "myvalue4"}
+]
+.fi
+.if n .RE
+.SS "SAMPLE"
+.sp
+The sample format specifies a ZIP file or folder containing multiple documents.
+This format is intended to load Couchbase sample data sets. Unlike the lines and
+list formats the sample format may also contains index, view, and full\-text
+index definitions. The folder structure is specified below.
+.sp
+.if n .RS 4
+.nf
++ (root folder)
+  + docs
+    key1.json
+    key2.json
+    ...
+  + design_docs
+    indexes.json
+    views.json
+.fi
+.if n .RE
+.sp
+All documents in the samples format are contained in the docs folder and there
+is one file per document. Each filename in the docs folder is the key name for
+the JSON document contained in the file. If the filename contains a .json
+extension then the extension is excluded from the key name during the import.
+This name can be overridden if the \-\-generate\-key option is specified. The docs
+folder may also contain sub\-folders of documents to be imported. Sub\-folders can
+be used to organize large amounts of documents into a more readable catagorized
+form.
+.sp
+The design_docs folder contains index definitions. The filename indexes.json is
+reserved for secondary indexes. All other file names are used for view indexes.
+.SH "KEY GENERATORS"
+.sp
+Key generators are used in order to generate a key for each document loaded.
+Keys can be generated by using a combination of characters, the values of a
+given field in a document, and custom generators. Field substitutions are done
+by wrapping the field name in "%" and custom generators are wrapped in "#".
+Below is an example of a key generation expression.
+.sp
+Given the document:
+.sp
+.if n .RS 4
+.nf
+{
+  "name": "alice",
+  "age": 40,
+  "address": {
+      "street": "Broadway",
+      "country": "USA"
+  }
+}
+.fi
+.if n .RE
+.sp
+Key Generator Expression:
+.sp
+.if n .RS 4
+.nf
+\-\-generate\-key key::%name%::#MONO_INCR#
+.fi
+.if n .RE
+.sp
+The following key would be generated:
+.sp
+.if n .RS 4
+.nf
+key::alice::1
+.fi
+.if n .RE
+.sp
+In the example above we generate a key using both the value of a field in the
+document and a custom generator. We use the "name" field to use the value of the
+name field as part of the key. This is specified by "%name%" which tells the key
+generator to substitute the value of the field "name" into the key. To reference
+a nested field we would use "parent.child" syntax. For example to reference tha
+country we would use \(aq%address.country%\(aq. To reference a field that contains a
+dot in the name we escape the string using `` . For example
+\(aq%`address.country`%\(aq refers to a field named "address.country".
+.sp
+This example also contains a generator function MONO_INCR which will increment
+by 1 each time the key generator is called. Since this is the first time this
+key generator was executed it returns 1. If we executed the key generator again
+it would return 2 and so on. The starting value of the MONO_INCR generator is 1
+by default, but it can be changed by specifying a number in brackets after the
+MONO_INCR generator name. To start generating monotonically incrementing values
+starting at 100 for example, the generator MONO_INCR[100] would be specified.
+The cbimport command current contains a monotonic increment generator
+(MONO_INCR) and a UUID generator (UUID).
+.sp
+Any text that isn\(cqt wrapped in "%" or "#" is static text and will be in the
+result of all generated keys. If a key needs to contain a "%" or "#" in static
+text then they need to be escaped by providing a double "%" or "#"
+(ex. "%%" or "##"). The delimiter characters can be changed to avoid having to
+escape them by using the \-\-field\-delimiter and \-\-generator\-delimiter flags.
+.sp
+If a key cannot be generated because the field specified in the key generator is
+not present in the document then the key will be skipped. To see a list of
+document that were not imported due to failed key generation users can specify
+the \-\-errors\-log <path> parameter to dump a list of all documents that could not
+be imported to a file.
+.SH "EXAMPLES"
+.sp
+In the examples below we will show examples for importing data from the files
+below.
+.sp
+.B /data/lines.json
+.br
+.sp
+.if n .RS 4
+.nf
+{"name": "alice", "age": 37}
+{"name": "bob", "age": 39}
+.fi
+.if n .RE
+.sp
+.B /data/list.json
+.br
+.sp
+.if n .RS 4
+.nf
+[
+  {"name": "candice", "age": 42},
+  {"name": "daniel", "age": 38}
+]
+.fi
+.if n .RE
+.sp
+To import data from /data/lines.json using a key containing the "name" field and
+utilizing 4 threads the following command can be run.
+.sp
+.if n .RS 4
+.nf
+$ cbimport json \-c couchbase://127.0.0.1 \-u Administrator \-p password \(rs
+ \-b default \-d file:///data/lines.json \-f lines \-g key::%name% \-t 4
+.fi
+.if n .RE
+.sp
+To import data from /data/list.json using a key containing the "name" field and
+the UUID generator the following command would be run.
+.sp
+.if n .RS 4
+.nf
+$ cbimport json \-c couchbase://127.0.0.1 \-u Administrator \-p password \(rs
+ \-b default \-d file:///data/list.json \-f list \-g key::%name%::#UUID# \-t 4
+.fi
+.if n .RE
+.sp
+To import data from /data/list.json using a key containing the "name" field and
+then a unique id separated by a # we could use the \-\-generator\-delimiter flag
+to avoid escaping the # sign. An example would be:
+.sp
+.if n .RS 4
+.nf
+$ cbimport json \-c couchbase://127.0.0.1 \-u Administrator \-p password \(rs
+\-b default \-d file:///data/list.json \-f list \-\-generator\-delimiter \(aq£\(aq \(rs
+\-g key::%name%#£UUID£ \-t 4
+.fi
+.if n .RE
+.sp
+If the dataset in not available on the local machine where the command is run,
+but is available via an HTTP URL we can still import the data using cbimport. If
+we assume that the data is located at \c
+.URL "http://data.org/list.json" "" " "
+and that the
+dataset is in the JSON list format then we can import the data with the command
+below.
+.sp
+.if n .RS 4
+.nf
+$ cbimport json \-c couchbase://127.0.0.1 \-u Administrator \-p password \(rs
+ \-b default \-d http://data.org/list.json \-f list \-g key::%name%::#UUID# \-t 4
+.fi
+.if n .RE
+.SH "DISCUSSION"
+.sp
+The cbimport\-json command is used to quickly import data from various files
+containing JSON data. While importing JSON the cbimport command only utilizes a
+single reader. As a result importing large dataset may benefit from being
+paritioned into multiple files and running a separate cbimport process on each
+file.
+.SH "ENVIRONMENT AND CONFIGURATION VARIABLES"
+.sp
+(None)
+.SH "SEE ALSO"
+.sp
+\fBcbexport\-json\fP(1)
+.SH "CBIMPORT"
+.sp
+Part of the \fBcbimport\fP(1) suite
+.SH "AUTHOR"
+.sp
+Couchbase

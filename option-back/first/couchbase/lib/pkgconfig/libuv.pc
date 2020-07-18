@@ -1,0 +1,12 @@
+prefix=/home/couchbase/jenkins/workspace/cbdeps-platform-build/cbbuild-tools/cbdeps/build/libuv/install
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libuv
+Version: 1.20.3
+Description: multi-platform support library with a focus on asynchronous I/O.
+URL: http://libuv.org/
+
+Libs: -L${libdir} -luv -lrt -lpthread -lnsl -ldl 
+Cflags: -I${includedir}

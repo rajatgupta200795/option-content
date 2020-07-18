@@ -1,0 +1,12 @@
+FROM python:3
+RUN python --version
+RUN apt-get update
+WORKDIR /app
+ADD req.txt req.txt
+RUN pip3 install -r req.txt
+ADD FetchFaoParticipant.py FetchFaoParticipant.py
+CMD ls
+RUN pip3 install -r req.txt
+ENTRYPOINT ["python3", "/app/FetchFaoParticipant.py"]
+CMD ls
+

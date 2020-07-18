@@ -1,0 +1,19 @@
+#
+# Author: Lasse Collin
+#
+# This file has been put into the public domain.
+# You can do whatever you want with this file.
+#
+
+prefix=/opt/couchbase/lib/python/runtime
+exec_prefix=/opt/couchbase/lib/python/runtime
+libdir=/opt/couchbase/lib/python/runtime/lib
+includedir=/opt/couchbase/lib/python/runtime/include
+
+Name: liblzma
+Description: General purpose data compression library
+URL: https://tukaani.org/xz/
+Version: 5.2.4
+Cflags: -I${includedir}
+Libs: -L${libdir} -llzma
+Libs.private: -pthread -lrt  

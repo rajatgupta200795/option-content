@@ -1,0 +1,16 @@
+{
+  "arch": "x86_64",
+  "build": "main",
+  "build_number": 0,
+  "depends": [],
+  "files": [],
+  "installed_by": "cbpy-installer",
+  "link": null,
+  "md5": "0bb48250a064a019c9dbe8564d865efd",
+  "name": "_libgcc_mutex",
+  "platform": "linux",
+  "subdir": "linux-64",
+  "timestamp": 1562011674792,
+  "url": "http://repo.anaconda.com/pkgs/main/linux-64/_libgcc_mutex-0.1-main.tar.bz2",
+  "version": "0.1"
+}
